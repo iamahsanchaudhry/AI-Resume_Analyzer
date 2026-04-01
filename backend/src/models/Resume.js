@@ -27,6 +27,11 @@ const resumeSchema = new mongoose.Schema(
       default: [],
     },
 
+    aiConfidence:{
+      type: Number,
+      default:0,
+    },
+
     // Optional field: Job matching score (0-100)
     matchScore: {
       type: Number,

@@ -1,26 +1,69 @@
+# =========================
 # Node.js dependencies
+# =========================
 node_modules/
-
-# Environment variables
-.env
-
-# Local uploads
-uploads/
-
-# Logs
-logs/
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# =========================
+# Environment variables (IMPORTANT)
+# =========================
+# Node backend env
+backend/.env
+
+# Python AI service env
+ai-service/.env
+
+# fallback (in case env exists at root)
+.env
+
+# =========================
+# Uploads (user resumes)
+# =========================
+uploads/
+*.pdf
+*.docx
+*.txt
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
 # OS files
+# =========================
 .DS_Store
 Thumbs.db
 
-# VS Code settings
+# =========================
+# IDE / Editor
+# =========================
 .vscode/
+.idea/
 
-# Optional: build folders if using TypeScript or bundlers
+# =========================
+# Build folders
+# =========================
 dist/
 build/
+out/
+
+# =========================
+# Python cache (AI service)
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# =========================
+# SQLite (if used)
+# =========================
+*.sqlite3
