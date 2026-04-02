@@ -23,7 +23,6 @@ export const processResume = async (file) => {
       text: extractedText
     }
   );
-  console.log(aiResponse.data);
 
   const { skills, confidence } = aiResponse.data;
 
