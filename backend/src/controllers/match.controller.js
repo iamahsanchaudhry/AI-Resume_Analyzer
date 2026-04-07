@@ -15,51 +15,49 @@ export const matchResume = async (req, res) => {
 
     const resumeSkills = resume.skills || [];
 
-    // 2. Call AI service for job skills
+    // 2. Get job skills from AI service
     const aiResponse = await axios.post(
       "http://127.0.0.1:8000/extract-job-skills",
-      {
-        text: jobDescription,
-      },
+      { text: jobDescription }
     );
 
     const jobSkills = aiResponse.data.skills || [];
 
-    // 3. Normalize (IMPORTANT)
-    const normalize = (arr) => arr.map((s) => s.toLowerCase().trim());
+    // 3. NORMALIZE (IMPORTANT FIX)
+    const normalize = (arr) =>
+      arr.map((s) => s.toLowerCase().trim());
 
     const normalizedResume = normalize(resumeSkills);
     const normalizedJob = normalize(jobSkills);
 
-    // 4. Match skills
+    // 4. MATCH using normalized data
     const { matchedSkills, missingSkills, weakMatches } = matchSkills(
-      resumeSkills,
-      jobSkills,
+      normalizedResume,
+      normalizedJob
     );
 
-    // 5. Score
-    const total = jobSkills.length;
+    // 5. SCORE
+    const total = normalizedJob.length;
 
     const score =
       total === 0
         ? 0
         : Math.round(
-            ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100,
+            ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100
           );
-    //console.log(score,matchedSkills.length, jobSkills.length);
 
-    //6. Feedback
+    // 6. FEEDBACK
     const feedback = [];
 
     if (missingSkills.length > 0) {
       feedback.push(
-        `You are missing key skills: ${missingSkills.slice(0, 5).join(", ")}`,
+        `You are missing key skills: ${missingSkills.slice(0, 5).join(", ")}`
       );
     }
 
     if (weakMatches.length > 0) {
       feedback.push(
-        `Partial matches found (improve naming or usage): ${weakMatches.slice(0, 5).join(", ")}`,
+        `Partial matches found (improve naming or usage): ${weakMatches.slice(0, 5).join(", ")}`
       );
     }
 
@@ -70,14 +68,17 @@ export const matchResume = async (req, res) => {
     } else {
       feedback.push("Low match — consider upskilling for this role");
     }
-    // 7. Response
+
+    // 7. RESPONSE
     res.json({
       matchScore: score,
       matchedSkills,
       missingSkills,
-      jobSkills, // optional (good for debugging)
+      weakMatches,
+      jobSkills,
       feedback,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Matching failed",
