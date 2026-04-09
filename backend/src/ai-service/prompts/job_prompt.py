@@ -1,18 +1,38 @@
 JOB_PROMPT = """
 You are an expert ATS (Applicant Tracking System).
 
-Extract ONLY technical skills from the job description.
+Your task is to extract ONLY technical skills from the given job description.
 
 STRICT RULES:
-- Include: programming languages, frameworks, tools, technologies
-- Exclude: soft skills (teamwork, communication, etc.)
-- Exclude: responsibilities, duties, generic text
-- Normalize skill names (e.g., ReactJS → React, Node.js → Node)
+- Extract skills ONLY from the provided text (DO NOT use any predefined or external skill list)
+- Include only:
+  • Programming languages
+  • Frameworks
+  • Libraries
+  • Tools
+  • Technologies
+  • Databases
+  • Platforms
 
-Return ONLY valid JSON (no text, no markdown):
+- Exclude:
+  • Soft skills (teamwork, communication, leadership, etc.)
+  • Job responsibilities or explanations
+  • Generic phrases or sentences
+
+
+
+- Do NOT hallucinate skills that are not explicitly or clearly implied in the text
+
+OUTPUT RULES:
+- Return ONLY valid JSON
+- No markdown
+- No explanation
+- No extra text
+
+Format:
 
 {
-  "skills": ["Java", "Android", "Kotlin", "JDBC", "Multithreading", "JavaFX", "XML", "JSON", "Data Structures", "Algorithms", "Design Patterns", "IntelliJ IDEA"],
+  "skills": ["skill1", "skill2", "skill3"],
   "confidence": 0.0
 }
 """
