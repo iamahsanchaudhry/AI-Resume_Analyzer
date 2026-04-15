@@ -6,7 +6,7 @@ const resumeService = {
   uploadResume: async (file: File) => {
     const formData = new FormData();
     formData.append("resume", file);
-
+    
     const { data } = await axios.post(
       `${API}/resumes/upload`,
       formData

@@ -25,7 +25,13 @@ export const matchResume = async (req, res) => {
 
     // 3. NORMALIZE (IMPORTANT FIX)
     const normalize = (arr) =>
-      arr.map((s) => s.toLowerCase().trim());
+      arr.map((s) =>
+        s
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s]/g, "") 
+          .replace(/\s+/g, " ")    
+      );
 
     const normalizedResume = normalize(resumeSkills);
     const normalizedJob = normalize(jobSkills);
@@ -43,8 +49,8 @@ export const matchResume = async (req, res) => {
       total === 0
         ? 0
         : Math.round(
-            ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100
-          );
+          ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100
+        );
 
     // 6. FEEDBACK
     const feedback = [];

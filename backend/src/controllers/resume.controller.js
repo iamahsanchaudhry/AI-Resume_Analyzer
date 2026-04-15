@@ -13,7 +13,6 @@ export const uploadResume = async (req, res) => {
       message: "Resume uploaded successfully",
       resume: result,
     });
-
   } catch (error) {
     res.status(500).json({
       message: "Resume processing failed",

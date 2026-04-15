@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "../ui/input";
 
 interface Props {
   onFileSelect: (file: File) => void;
@@ -75,7 +76,7 @@ export default function UploadZone({ onFileSelect, file }: Props) {
         </Button>
 
         {/* Hidden input */}
-        <input
+        <Input
           ref={inputRef}
           type="file"
           accept=".pdf,.docx"

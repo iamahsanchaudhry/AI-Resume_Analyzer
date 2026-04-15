@@ -15,6 +15,12 @@ const resumeSchema = new mongoose.Schema(
       required: true,
     },
 
+    // File Hash
+    fileHash: {
+      type: String,
+      required: true,
+    },
+
     // Full extracted text (used for AI parsing later)
     text: {
       type: String,

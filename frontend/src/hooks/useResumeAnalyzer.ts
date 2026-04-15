@@ -28,7 +28,6 @@ export default function useResumeAnalyzer() {
   const [error, setError] = useState<string | null>(null);
 
   const analyzeResume = async () => {
-    console.log("Starting analysis with:", { file, jobDescription });
     if (!file || !jobDescription.trim()) {
       setError("Please upload resume and enter job description");
       return;
@@ -42,6 +41,7 @@ export default function useResumeAnalyzer() {
       setResult(null);
 
       // 1️⃣ Upload resume
+      
       const uploadRes = await resumeService.uploadResume(file);
       const resumeId = uploadRes?.resumeId;
 
@@ -78,14 +78,14 @@ export default function useResumeAnalyzer() {
 
         feedback: Array.isArray(response?.feedback)
           ? response.feedback.map((text: string) => ({
-              type: text.toLowerCase().includes("low")
-                ? "danger"
-                : text.toLowerCase().includes("missing")
+            type: text.toLowerCase().includes("low")
+              ? "danger"
+              : text.toLowerCase().includes("missing")
                 ? "warning"
                 : "success",
-              title: "AI Feedback",
-              description: text,
-            }))
+            title: "AI Feedback",
+            description: text,
+          }))
           : [],
       };
 
