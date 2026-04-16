@@ -1,11 +1,13 @@
 interface Props {
   label: string;
   type?: "default" | "secondary" | "destructive";
+  background?: string;
 }
 
 export default function SkillBadge({
   label,
   type = "secondary",
+  background,
 }: Props) {
   const styles = {
     default:
@@ -19,8 +21,7 @@ export default function SkillBadge({
   return (
     <span
       className={`
-        text-xs px-2 py-1 rounded-full font-medium
-        ${styles[type]}
+        text-xs px-2 py-1 rounded-full font-medium ${background || styles[type]}
       `}
     >
       {label}

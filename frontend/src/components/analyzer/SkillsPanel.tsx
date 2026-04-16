@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import SkillRow from "./SkillRow";
 
@@ -20,17 +15,17 @@ export default function SkillsPanel({ skills }: Props) {
   const safeSkills: Skill[] = Array.isArray(skills) ? skills : [];
 
   return (
-    <Card className="bg-card/60 border border-border/50 rounded-xl shadow-sm">
+    <Card className="bg-card/60 border border-border/50 rounded-xl shadow-sm h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           Skill Match
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="flex flex-col flex-1">
         {safeSkills.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
-            No skills extracted yet from resume analysis.
+            No skills matched after AI Analysis.
           </p>
         ) : (
           <div className="space-y-3">
@@ -45,13 +40,15 @@ export default function SkillsPanel({ skills }: Props) {
         )}
 
         {/* Legend */}
-        <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
+        <div className="mt-auto flex gap-4 pb-1 pt-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-500" /> Matched
           </span>
+
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-yellow-500" /> Partial
           </span>
+
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-500" /> Missing
           </span>

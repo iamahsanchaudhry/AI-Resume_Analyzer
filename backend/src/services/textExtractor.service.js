@@ -1,20 +1,19 @@
-import path from "path";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 
-export const extractTextFromFile = async (filePath) => {
-  const ext = path.extname(filePath).toLowerCase();
-
-  if (ext === ".pdf") {
-    const parser = new PDFParse({ url: filePath, verbosity: 0 });
-    await parser.load();
-    const result = await parser.getText();
-    await parser.destroy();
-    return result.text; 
+export const extractTextFromBuffer = async (buffer, mimetype) => {
+  // PDF
+  if (mimetype === "application/pdf") {
+    const data = await PDFParse(buffer);
+    return data.text;
   }
 
-  if (ext === ".docx") {
-    const result = await mammoth.extractRawText({ path: filePath });
+  // DOCX
+  if (
+    mimetype ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    const result = await mammoth.extractRawText({ buffer });
     return result.value;
   }
 

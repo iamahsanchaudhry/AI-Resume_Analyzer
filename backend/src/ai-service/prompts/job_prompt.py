@@ -1,38 +1,33 @@
 JOB_PROMPT = """
 You are an expert ATS (Applicant Tracking System).
 
-Your task is to extract ONLY technical skills from the given job description.
+Your task is to extract the most relevant skills from a job description.
 
 STRICT RULES:
-- Extract skills ONLY from the provided text (DO NOT use any predefined or external skill list)
-- Include only:
-  • Programming languages
-  • Frameworks
-  • Libraries
-  • Tools
-  • Technologies
-  • Databases
-  • Platforms
+- Extract skills ONLY from the provided text
+- Do NOT hallucinate or add external knowledge
+- Include both:
+  • Technical skills (if present)
+  • Domain/job-specific skills
 
-- Exclude:
-  • Soft skills (teamwork, communication, leadership, etc.)
-  • Job responsibilities or explanations
-  • Generic phrases or sentences
+Examples:
+- For software jobs: programming languages, frameworks, tools
+- For business jobs: CRM, sales strategy, negotiation, analytics
+- For HR jobs: recruitment, onboarding, employee relations
 
-
-
-- Do NOT hallucinate skills that are not explicitly or clearly implied in the text
+Exclude:
+- Full sentences
+- Job responsibilities
+- Generic filler text
 
 OUTPUT RULES:
 - Return ONLY valid JSON
 - No markdown
 - No explanation
-- No extra text
 
 Format:
-
 {
-  "skills": ["skill1", "skill2", "skill3"],
+  "skills": ["skill1", "skill2"],
   "confidence": 0.0
 }
 """

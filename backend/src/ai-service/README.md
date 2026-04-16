@@ -7,7 +7,7 @@ This guide explains how to run the AI service (FastAPI + Groq/Ollama) locally in
 ## 📁 1. Go to AI Service Folder
 
 ```bash
-cd F:\MERN-Stack\AI-Resume-Analyzer\backend\src\ai-service
+cd <Your Path>\AI-Resume-Analyzer\backend\src\ai-service
 ```
 
 ---

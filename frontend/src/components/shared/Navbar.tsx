@@ -1,35 +1,92 @@
-import { ModeToggle } from "../mode-toggle";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ModeToggle } from "../mode-toggle";
+import { Separator } from "../ui/separator";
 
-export default function Navbar() {
+export function Navbar() {
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      
-      {/* Logo */}
-      <Link to="/">
-      <h1 className="text-lg font-semibold tracking-tight text-primary">
-        AI Resume
-        <span className="text-[#534AB7]">Analyzer</span>
-      </h1>
-      </Link>
-      
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/60 backdrop-blur">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-1 shrink-0">
+          <span className="text-base font-semibold whitespace-nowrap">
+            AI Resume
+          </span>
+          <span className="text-base font-semibold whitespace-nowrap text-[#534AB7]">
+            Analyzer
+          </span>
+        </Link>
 
-      {/* Links */}
-      {/* <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-        <button className="hover:text-foreground transition">
-          How it works
-        </button>
-        <button className="hover:text-foreground transition">
-          Pricing
-        </button>
-      </div> */}
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-start gap-6 text-sm font-medium">
+          <Link to="/" className="hover:text-muted-foreground transition">
+            Home
+          </Link>
+          <Link
+            to="/analyze"
+            className="hover:text-muted-foreground transition"
+          >
+            Analyze Resume
+          </Link>
+        </div>
 
-      {/* Auth */}
-      <div className="flex items-center gap-3">
-        <ModeToggle />
-        {/* <Button variant="outline">Sign in</Button> */}
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          <ModeToggle />
+
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent side="right" className="w-[260px] p-0 bg-background" showCloseButton={false}>
+              {/* Custom header */}
+              <div className="flex items-center justify-between p-6 border-b">
+                <span className="font-semibold">Menu</span>
+
+                <SheetClose asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-lg hover:bg-muted border border-border"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </SheetClose>
+              </div>
+
+              <div className="flex flex-col p-4 gap-2">
+                <SheetClose asChild>
+                  <Link className="px-3 py-2 rounded-md hover:bg-muted" to="/">
+                    Home
+                  </Link>
+                </SheetClose>
+
+                <Separator className="my-1 h-px w-full bg-border" />
+
+                <SheetClose asChild>
+                  <Link
+                    className="px-3 py-2 rounded-md hover:bg-muted"
+                    to="/analyze"
+                  >
+                    Analyze Resume
+                  </Link>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-
     </nav>
   );
 }

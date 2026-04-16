@@ -1,20 +1,19 @@
 import Resume from "../models/Resume.js";
-import { extractTextFromFile } from "../services/textExtractor.service.js";
+import { extractTextFromBuffer } from "../services/textExtractor.service.js";
 import axios from "axios";
-import fs from "fs";
 import crypto from "crypto";
 
 export const processResume = async (file) => {
-  const filePath = `uploads/${file.filename}`;
+  // 1. Get buffer directly
+  const fileBuffer = file.buffer;
 
-  // 1. Create file hash (IMPORTANT)
-  const fileBuffer = fs.readFileSync(filePath);
+  // 2. Create hash
   const fileHash = crypto
     .createHash("sha256")
     .update(fileBuffer)
     .digest("hex");
 
-  // 2. Check existing resume by hash
+  // 3. Check duplicate
   const existing = await Resume.findOne({
     fileHash,
     status: "processed",
@@ -25,18 +24,21 @@ export const processResume = async (file) => {
     return existing;
   }
 
-  // 3. Create DB record
+  // 4. Create DB record
   const resume = await Resume.create({
-    filename: file.filename,
+    filename: file.originalname,
     originalName: file.originalname,
-    fileHash: fileHash,
+    fileHash,
     status: "processing",
   });
 
-  // 4. Extract text
-  const extractedText = await extractTextFromFile(filePath);
+  // 5. Extract text FROM BUFFER (NOT FILE PATH)
+  const extractedText = await extractTextFromBuffer(
+    fileBuffer,
+    file.mimetype
+  );
 
-  // 5. Call AI service
+  // 6. Call AI service
   const aiResponse = await axios.post(
     "http://localhost:8000/extract-skills",
     { text: extractedText }
@@ -44,7 +46,7 @@ export const processResume = async (file) => {
 
   const { skills, confidence } = aiResponse.data;
 
-  // 6. Save result
+  // 7. Save result
   resume.text = extractedText;
   resume.skills = skills;
   resume.aiConfidence = confidence;

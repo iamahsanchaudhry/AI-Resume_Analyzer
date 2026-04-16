@@ -12,16 +12,19 @@ export default function SkillRow({ name, status }: Props) {
       label: "Matched",
       type: "default" as const,
       dot: "bg-green-500",
+      bg: "bg-green-500",
     },
     partial: {
       label: "Partial",
       type: "secondary" as const,
       dot: "bg-yellow-500",
+      bg: "bg-yellow-500",
     },
     missing: {
       label: "Missing",
       type: "destructive" as const,
       dot: "bg-red-500",
+      bg: "bg-red-500",
     },
   };
 
@@ -35,7 +38,7 @@ export default function SkillRow({ name, status }: Props) {
       </div>
 
       {/* reused component */}
-      <SkillBadge label={current.label} type={current.type} />
+      <SkillBadge label={current.label} type={current.type} background={current.bg} />
     </div>
   );
 }

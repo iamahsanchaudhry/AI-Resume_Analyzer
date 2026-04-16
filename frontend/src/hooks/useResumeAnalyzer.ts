@@ -1,5 +1,6 @@
 import { useState } from "react";
 import resumeService from "../services/resumeService";
+import { toast } from "sonner";
 
 interface Skill {
   name: string;
@@ -27,7 +28,12 @@ export default function useResumeAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [requestId, setRequestId] = useState(0);
+
   const analyzeResume = async () => {
+    const currentRequest = requestId + 1;
+    setRequestId(currentRequest);
+
     if (!file || !jobDescription.trim()) {
       setError("Please upload resume and enter job description");
       return;
@@ -40,59 +46,69 @@ export default function useResumeAnalyzer() {
       setError(null);
       setResult(null);
 
-      // 1️⃣ Upload resume
-      
       const uploadRes = await resumeService.uploadResume(file);
       const resumeId = uploadRes?.resumeId;
 
-      if (!resumeId) {
-        throw new Error("Failed to upload resume");
-      }
+      if (!resumeId) throw new Error("Failed to upload resume");
 
-      // 2️⃣ Analyze resume
       const response = await resumeService.analyzeResume(
         resumeId,
-        jobDescription
+        jobDescription,
       );
 
-      // 🧠 NORMALIZE NEW BACKEND RESPONSE
-      const formatted: AnalysisResult = {
-        score: response?.matchScore ?? 0,
+      // ❗ Ignore stale responses
+      if (currentRequest !== requestId + 1) return;
 
+      const formatted = {
+        score: response?.matchScore ?? 0,
         skills: [
           ...(response?.matchedSkills ?? []).map((s: string) => ({
             name: s,
-            status: "matched" as const,
+            status: "matched",
           })),
-
           ...(response?.missingSkills ?? []).map((s: string) => ({
             name: s,
-            status: "missing" as const,
+            status: "missing",
           })),
-
           ...(response?.weakMatches ?? []).map((s: string) => ({
             name: s,
-            status: "partial" as const,
+            status: "partial",
           })),
         ],
-
         feedback: Array.isArray(response?.feedback)
           ? response.feedback.map((text: string) => ({
-            type: text.toLowerCase().includes("low")
-              ? "danger"
-              : text.toLowerCase().includes("missing")
-                ? "warning"
-                : "success",
-            title: "AI Feedback",
-            description: text,
-          }))
+              type: text.toLowerCase().includes("low")
+                ? "danger"
+                : text.toLowerCase().includes("missing")
+                  ? "warning"
+                  : "success",
+              title: "AI Feedback",
+              description: text,
+            }))
           : [],
       };
 
       setResult(formatted);
+
+      toast.success("Analysis Complete", {
+        description:
+          "Your resume analysis is complete. Check the results below!",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
     } catch (err: any) {
-      console.error(err);
       setError(err.message || "Something went wrong");
+
+      toast.error("Something went wrong", {
+        description:
+          err.message || "Unable to analyze resume. Please try again.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
     } finally {
       setLoading(false);
     }

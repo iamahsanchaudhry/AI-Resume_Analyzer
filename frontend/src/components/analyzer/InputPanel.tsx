@@ -42,14 +42,14 @@ export default function InputPanel({
     </div>
 
     {/* Analyze Button Panel */}
-    <div className="h-full">
+    <div className="h-10 md:h-full">
       <Button
         className="
           h-full w-full
-          rounded-xl
+          rounded-full md:rounded-xl
           bg-gradient-to-br from-indigo-500 to-purple-600
           hover:from-indigo-400 hover:to-purple-500
-          text-white font-medium
+          text-white font-lgt-semibold
           shadow-lg shadow-indigo-500/20
           transition-all
           active:scale-[0.98]

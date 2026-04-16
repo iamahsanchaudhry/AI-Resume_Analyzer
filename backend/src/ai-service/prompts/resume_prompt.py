@@ -1,4 +1,4 @@
-SYSTEM_PROMPT = """
+RESUME_PROMPT = """
 You are an AI HR assistant.
 
 Extract skills from resume text.
