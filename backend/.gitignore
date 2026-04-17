@@ -9,14 +9,9 @@ yarn-error.log*
 # =========================
 # Environment variables (IMPORTANT)
 # =========================
-# Node backend env
-backend/.env
-
-# Python AI service env
-ai-service/.env
-
-# fallback (in case env exists at root)
 .env
+backend/.env
+ai-service/.env
 
 # =========================
 # Uploads (user resumes)
@@ -52,7 +47,7 @@ build/
 out/
 
 # =========================
-# Python cache (AI service)
+# Python AI service
 # =========================
 __pycache__/
 *.pyc
@@ -64,6 +59,7 @@ env/
 .mypy_cache/
 
 # =========================
-# SQLite (if used)
+# IMPORTANT: DO NOT IGNORE
 # =========================
-*.sqlite3
+# requirements.txt  ❌ (DO NOT IGNORE THIS)
+# pip freeze > requirements.txt should be committed

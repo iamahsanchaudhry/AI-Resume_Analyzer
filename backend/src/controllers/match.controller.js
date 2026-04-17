@@ -1,4 +1,4 @@
-import Resume from "../models/Resume.js";
+import Resume from "../models/Resume.model.js";
 import axios from "axios";
 import { matchSkills } from "../utils/skillMatcher.js";
 
@@ -18,7 +18,7 @@ export const matchResume = async (req, res) => {
     // 2. Get job skills from AI service
     const aiResponse = await axios.post(
       "http://127.0.0.1:8000/extract-job-skills",
-      { text: jobDescription }
+      { text: jobDescription },
     );
 
     const jobSkills = aiResponse.data.skills || [];
@@ -29,8 +29,8 @@ export const matchResume = async (req, res) => {
         s
           .toLowerCase()
           .trim()
-          .replace(/[^\w\s]/g, "") 
-          .replace(/\s+/g, " ")    
+          .replace(/[^\w\s]/g, "")
+          .replace(/\s+/g, " "),
       );
 
     const normalizedResume = normalize(resumeSkills);
@@ -39,7 +39,7 @@ export const matchResume = async (req, res) => {
     // 4. MATCH using normalized data
     const { matchedSkills, missingSkills, weakMatches } = matchSkills(
       normalizedResume,
-      normalizedJob
+      normalizedJob,
     );
 
     // 5. SCORE
@@ -49,21 +49,21 @@ export const matchResume = async (req, res) => {
       total === 0
         ? 0
         : Math.round(
-          ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100
-        );
+            ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100,
+          );
 
     // 6. FEEDBACK
     const feedback = [];
 
     if (missingSkills.length > 0) {
       feedback.push(
-        `You are missing key skills: ${missingSkills.slice(0, 5).join(", ")}`
+        `You are missing key skills: ${missingSkills.slice(0, 5).join(", ")}`,
       );
     }
 
     if (weakMatches.length > 0) {
       feedback.push(
-        `Partial matches found (improve naming or usage): ${weakMatches.slice(0, 5).join(", ")}`
+        `Partial matches found (improve naming or usage): ${weakMatches.slice(0, 5).join(", ")}`,
       );
     }
 
@@ -84,7 +84,6 @@ export const matchResume = async (req, res) => {
       jobSkills,
       feedback,
     });
-
   } catch (error) {
     res.status(500).json({
       message: "Matching failed",

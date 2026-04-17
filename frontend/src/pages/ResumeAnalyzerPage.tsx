@@ -26,7 +26,6 @@ export default function ResumeAnalyzerPage() {
     error,
   } = useResumeAnalyzer();
 
-
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       {/* subtle animated background glow */}
@@ -111,24 +110,24 @@ export default function ResumeAnalyzerPage() {
         </AnimatePresence>
 
         {/* RESULTS */}
-        
-          <AnimatePresence mode="wait">
-            {result && !loading && (
-              <motion.div
-                key="results"
-                initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <ResultsView
-                  score={result.score}
-                  skills={result.skills}
-                  feedback={result.feedback}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+        <AnimatePresence>
+          {result && !loading && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <ResultsView
+                score={result.score}
+                skills={result.skills}
+                feedback={result.feedback}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* EMPTY STATE */}
         {!result && !loading && (
