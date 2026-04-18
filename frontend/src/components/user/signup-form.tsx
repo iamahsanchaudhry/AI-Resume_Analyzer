@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,9 +17,20 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const { signup, loading, error } = useAuth(); // reuse login after signup
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await signup(email, password);
+    navigate("/"); // redirect after signup
+  };
+
   return (
     <Card {...props}>
       <CardHeader>
@@ -24,8 +39,9 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
           Enter your information below to create your account
         </CardDescription>
       </CardHeader>
+
       <CardContent>
-        <form>
+        <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -34,30 +50,37 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <FieldDescription>
-                We&apos;ll use this to contact you. We will not share your email
-                with anyone else.
-              </FieldDescription>
+              <FieldDescription>We’ll never share your email.</FieldDescription>
             </Field>
+
             <Field>
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
               <FieldDescription>
                 Must be at least 8 characters long.
               </FieldDescription>
             </Field>
-            <FieldGroup>
-              <Field>
-                <Button type="submit">Create Account</Button>
-                {/* <Button variant="outline" type="button">
-                  Sign up with Google
-                </Button> */}
-                <FieldDescription className="px-6 text-center">
-                  Already have an account? <Link to="/login">Sign in</Link>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
+
+            {error && <p className="text-sm text-red-500">{error}</p>}
+
+            <Field>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Account"}
+              </Button>
+
+              <FieldDescription className="px-6 text-center">
+                Already have an account? <Link to="/login">Sign in</Link>
+              </FieldDescription>
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>

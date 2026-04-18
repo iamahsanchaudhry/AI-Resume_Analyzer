@@ -5,7 +5,7 @@ import User from "../../models/User.model.js";
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log("Login request received with email:", email);
     if (!email || !password) {
       return res
         .status(400)
@@ -131,5 +131,14 @@ export const forgetPassword = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to reset password", error: error.message });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    // Since JWT is stateless, we can't truly "logout" on the server side.
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to logout", error: error.message });
   }
 };

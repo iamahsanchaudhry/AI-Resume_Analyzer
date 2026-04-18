@@ -265,7 +265,6 @@ export default function LandingPage() {
               avoids permanent file storage entirely.
             </AccordionContent>
           </AccordionItem>
-
         </Accordion>
       </section>
     </div>

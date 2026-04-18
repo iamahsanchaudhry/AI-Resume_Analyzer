@@ -19,10 +19,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
-  const { user, isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, loading, logout } = useAuth();
 
   const AuthBlock = ({ mobile = false }: { mobile?: boolean }) => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn || loading) {
       return (
         <div
           className={
@@ -84,7 +84,7 @@ export function Navbar() {
           <Link to="/profile" className={mobile ? "w-full" : ""}>
             <Button
               variant="outline"
-              className={mobile ? "w-full justify-start" : ""}
+              className={mobile ? "w-full justify-center" : ""}
             >
               Profile
             </Button>
@@ -93,7 +93,7 @@ export function Navbar() {
           <Link to="/settings" className={mobile ? "w-full" : ""}>
             <Button
               variant="outline"
-              className={mobile ? "w-full justify-start" : ""}
+              className={mobile ? "w-full justify-center" : ""}
             >
               Settings
             </Button>
@@ -140,7 +140,7 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {!isLoggedIn ? (
+            {!isLoggedIn || loading ? (
               <>
                 <Link to="/login">
                   <Button variant="outline">Login</Button>

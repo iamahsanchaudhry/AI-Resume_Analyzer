@@ -5,6 +5,8 @@ import { matchSkills } from "../utils/skillMatcher.js";
 export const matchResume = async (req, res) => {
   try {
     const { resumeId, jobDescription } = req.body;
+    const userId = req.userId;
+    console.log("userId:", userId);
 
     // 1. Get resume
     const resume = await Resume.findById(resumeId);

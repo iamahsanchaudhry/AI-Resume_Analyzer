@@ -1,33 +1,32 @@
+// services/authService.ts
 import axios from "axios";
 
-export const login = async (email: string, password: string) => {
-  const response = await axios("http://localhost:5000/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: JSON.stringify({ email, password }),
-  });
+const API = axios.create({
+  baseURL: "http://localhost:5000/api/auth",
+});
 
-  if (!response) {
-    throw new Error("Login failed");
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  return response.data.json();
-};
+  return config;
+});
 
-export const signup = async (email: string, password: string) => {
-  const response = await axios("http://localhost:5000/api/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: JSON.stringify({ email, password }),
-  });
+export const login = (email: string, password: string) =>
+  API.post("/login", { email, password });
 
-  if (!response) {
-    throw new Error("Signup failed");
-  }
+export const signup = (email: string, password: string) =>
+  API.post("/signup", { email, password });
 
-  return response.data.json();
-};
+export const profile = () => API.get("/profile");
+
+export const updateProfile = (data: { name?: string; email?: string }) =>
+  API.put("/profile", data);
+
+export const updatePassword = (currentPassword: string, newPassword: string) =>
+  API.put("/profile/password", { currentPassword, newPassword });
+
+export const logout = () => API.post("/logout");
