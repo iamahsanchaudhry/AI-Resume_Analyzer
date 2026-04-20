@@ -1,16 +1,17 @@
 import InputPanel from "@/components/analyzer/InputPanel";
 import ResultsView from "@/components/analyzer/ResultsView";
 import UploadZone from "@/components/analyzer/UploadZone";
+import AuthDialog from "@/components/shared/AuthDialog";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import { Card, CardContent } from "@/components/ui/card";
 import useResumeAnalyzer from "@/hooks/useResumeAnalyzer";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ResumeAnalyzerPage() {
   const location = useLocation();
-
+  const navigate = useNavigate();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
@@ -24,6 +25,8 @@ export default function ResumeAnalyzerPage() {
     result,
     loading,
     error,
+    showGuestPopup,
+    setShowGuestPopup,
   } = useResumeAnalyzer();
 
   return (
@@ -140,6 +143,11 @@ export default function ResumeAnalyzerPage() {
           </motion.div>
         )}
       </div>
+      <AuthDialog
+        isOpen={showGuestPopup}
+        onClose={() => setShowGuestPopup(false)}
+        onLogin={() => navigate("/login")}
+      />
     </div>
   );
 }

@@ -1,21 +1,26 @@
 import Resume from "../models/Resume.model.js";
-import axios from "axios";
+import Analysis from "../models/Analysis.model.js";
 import { matchSkills } from "../utils/skillMatcher.js";
+
+import axios from "axios";
 
 export const matchResume = async (req, res) => {
   try {
-    const { resumeId, jobDescription } = req.body;
-    const userId = req.userId;
-    console.log("userId:", userId);
+    const { resumeId, jobDescription, resumeSkills } = req.body;
 
-    // 1. Get resume
-    const resume = await Resume.findById(resumeId);
+    const userId = req.user?.userId;
+    let resume_Skills = resumeSkills || [];
 
-    if (!resume) {
-      return res.status(404).json({ message: "Resume not found" });
+    if (resumeId && userId) {
+      // 1. Get resume
+      const resume = await Resume.findById(resumeId);
+
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+
+      resume_Skills = resume.skills || [];
     }
-
-    const resumeSkills = resume.skills || [];
 
     // 2. Get job skills from AI service
     const aiResponse = await axios.post(
@@ -35,7 +40,7 @@ export const matchResume = async (req, res) => {
           .replace(/\s+/g, " "),
       );
 
-    const normalizedResume = normalize(resumeSkills);
+    const normalizedResume = normalize(resume_Skills);
     const normalizedJob = normalize(jobSkills);
 
     // 4. MATCH using normalized data
@@ -77,14 +82,31 @@ export const matchResume = async (req, res) => {
       feedback.push("Low match — consider upskilling for this role");
     }
 
+    //saving analysis to DB if user is logged in and resumeId is provided
+    if (resumeId && userId) {
+      const analysisData = await Analysis.create({
+        userId,
+        resumeId,
+        jobDescription,
+        score,
+        matchedSkills: matchedSkills,
+        missingSkills: missingSkills,
+        weakMatches: weakMatches,
+        jobSkills: jobSkills,
+        feedback: feedback,
+        status: "completed",
+      });
+    }
+    const isGuest = !userId || !resumeId;
     // 7. RESPONSE
-    res.json({
+    res.status(201).json({
       matchScore: score,
       matchedSkills,
       missingSkills,
       weakMatches,
       jobSkills,
       feedback,
+      guest: isGuest,
     });
   } catch (error) {
     res.status(500).json({

@@ -76,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const { token, user } = res.data;
 
+      //Saving Session
       localStorage.setItem("token", token);
       setUser(user);
 
@@ -115,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error.response?.data?.message || error.message || "Login failed",
       );
       setError(error.message || "Login failed");
-      throw error; // 🔥 IMPORTANT
+      throw error;
     } finally {
       setLoading(false);
     }

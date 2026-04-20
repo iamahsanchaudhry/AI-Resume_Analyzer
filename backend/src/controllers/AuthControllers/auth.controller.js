@@ -25,7 +25,7 @@ export const login = async (req, res) => {
     }
 
     const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "7d",
     });
 
     res.json({ message: "Login successful", token: jwtToken, user: user });
@@ -59,9 +59,15 @@ export const signup = async (req, res) => {
 
     await newUser.save();
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", userId: newUser._id });
+    const jwtToken = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: newUser,
+      token: jwtToken,
+    });
   } catch (error) {
     res.status(500).json({ message: "Signup failed", error: error.message });
   }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import resumeService from "../services/resumeService";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface Skill {
   name: string;
@@ -29,6 +30,9 @@ export default function useResumeAnalyzer() {
   const [error, setError] = useState<string | null>(null);
 
   const [requestId, setRequestId] = useState(0);
+  const { user } = useAuth();
+
+  const [showGuestPopup, setShowGuestPopup] = useState(false);
 
   const analyzeResume = async () => {
     const currentRequest = requestId + 1;
@@ -48,12 +52,14 @@ export default function useResumeAnalyzer() {
 
       const uploadRes = await resumeService.uploadResume(file);
       const resumeId = uploadRes?.resumeId;
+      const resumeSkills = uploadRes?.skills || [];
 
-      if (!resumeId) throw new Error("Failed to upload resume");
+      if (!resumeId && user) throw new Error("Failed to upload resume");
 
       const response = await resumeService.analyzeResume(
         resumeId,
         jobDescription,
+        resumeSkills,
       );
 
       // ❗ Ignore stale responses
@@ -98,6 +104,10 @@ export default function useResumeAnalyzer() {
           onClick: () => toast.dismiss(),
         },
       });
+
+      if (response?.guest) {
+        setShowGuestPopup(true);
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong");
 
@@ -119,11 +129,11 @@ export default function useResumeAnalyzer() {
     setFile,
     jobDescription,
     setJobDescription,
-
     result,
     loading,
     error,
-
     analyzeResume,
+    showGuestPopup,
+    setShowGuestPopup,
   };
 }

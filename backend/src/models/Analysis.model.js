@@ -5,7 +5,7 @@ const analysisSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
 
@@ -14,11 +14,6 @@ const analysisSchema = new mongoose.Schema(
       ref: "Resume",
       required: true,
       index: true,
-    },
-
-    jobTitle: {
-      type: String,
-      default: "",
     },
 
     jobDescription: {
@@ -41,17 +36,17 @@ const analysisSchema = new mongoose.Schema(
       default: [],
     },
 
-    recommendations: {
+    feedback: {
       type: [String],
       default: [],
     },
 
-    strengths: {
+    weakMatches: {
       type: [String],
       default: [],
     },
 
-    weaknesses: {
+    jobSkills: {
       type: [String],
       default: [],
     },
