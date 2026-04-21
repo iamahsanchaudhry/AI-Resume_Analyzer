@@ -9,21 +9,6 @@ interface ToasterOptions {
   duration?: number;
 }
 
-/**
- * Fires a toast notification. Wraps Sonner with project defaults
- * (dismissible, sensible duration, consistent close action).
- *
- * Two call styles are supported:
- *
- * 1) Options object (preferred):
- *    Toaster({ type: "success", message: "Resume uploaded" });
- *    Toaster({ type: "error", message: "Upload failed", description: "File too large" });
- *
- * 2) Positional (legacy):
- *    Toaster("success", "Welcome Back!", `Logged in as ${name}`);
- *    Toaster("error", "Something broke");
- */
-
 // Overloads — the signatures TypeScript matches against at call sites.
 export default function Toaster(
   options: ToasterOptions,

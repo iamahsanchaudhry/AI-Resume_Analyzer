@@ -1,19 +1,19 @@
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa"
+import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { Link } from "react-router-dom";
 export function Footer() {
   return (
     <footer className="bg-background border-t mt-16">
       <div className="max-w-7xl mx-auto px-6 py-12 grid gap-10 md:grid-cols-3">
-        
         {/* Brand */}
         <div className="space-y-3">
           <h2 className="text-xl font-semibold tracking-tight">
             ATS Resume Analyzer
           </h2>
           <p className="text-sm text-muted-foreground">
-            Improve your resume with AI-powered insights and pass ATS filters easily.
+            Improve your resume with AI-powered insights and pass ATS filters
+            easily.
           </p>
         </div>
 
@@ -31,11 +31,11 @@ export function Footer() {
                 Analyze
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link to="#" className="hover:text-foreground transition">
                 Pricing
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link to="#" className="hover:text-foreground transition">
                 Contact
@@ -68,5 +68,5 @@ export function Footer() {
         © {new Date().getFullYear()} ATS Resume Analyzer. All rights reserved.
       </div>
     </footer>
-  )
+  );
 }

@@ -3,27 +3,30 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
 
 const API = axios.create({
-  baseURL: `${BASE_URL}`,
-  timeout: 15000, // 15s — sane ceiling so hung requests fail instead of spinning forever
+  baseURL: BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Attach token if available, otherwise skip
-const authHeaders = () => {
+// Attach token if available
+API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const resumeService = {
   uploadResume: async (file: File) => {
     const formData = new FormData();
     formData.append("resume", file);
 
-    const { data } = await axios.post(`${API}/resumes/upload`, formData, {
+    const { data } = await API.post("/resumes/upload", formData, {
       headers: {
-        ...authHeaders(),
+        "Content-Type": "multipart/form-data",
       },
     });
 
@@ -39,15 +42,12 @@ const resumeService = {
     resumeSkills: string[],
     guestId: string,
   ) => {
-    const { data } = await axios.post(
-      `${API}/match-resume`,
-      { resumeId, jobDescription, resumeSkills, guestId },
-      {
-        headers: {
-          ...authHeaders(),
-        },
-      },
-    );
+    const { data } = await API.post("/match-resume", {
+      resumeId,
+      jobDescription,
+      resumeSkills,
+      guestId,
+    });
 
     return data;
   },

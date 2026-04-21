@@ -133,7 +133,6 @@ export default function useResumeAnalyzer() {
         "error",
         "Something went wrong",
         err.response?.data?.message ||
-          err.message ||
           "Unable to analyze resume. Please try again.",
       );
 

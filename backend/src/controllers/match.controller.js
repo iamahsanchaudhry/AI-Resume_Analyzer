@@ -2,7 +2,7 @@ import Resume from "../models/Resume.model.js";
 import Analysis from "../models/Analysis.model.js";
 import { matchSkills } from "../utils/skillMatcher.js";
 import axios from "axios";
-
+import "dotenv/config";
 const extractIp = (req) => {
   return (
     req.headers["x-forwarded-for"]?.split(",")[0] ||
@@ -11,6 +11,8 @@ const extractIp = (req) => {
     req.ip
   );
 };
+
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
 
 export const matchResume = async (req, res) => {
   try {
@@ -68,7 +70,7 @@ export const matchResume = async (req, res) => {
 
     //  AI CALL
     const aiResponse = await axios.post(
-      "http://127.0.0.1:8000/extract-job-skills",
+      `${AI_SERVICE_URL}/extract-job-skills`,
       { text: jobDescription },
     );
 
