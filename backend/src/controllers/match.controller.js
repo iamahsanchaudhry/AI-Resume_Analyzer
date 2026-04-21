@@ -12,7 +12,9 @@ const extractIp = (req) => {
   );
 };
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
+import { extractJobSkills } from "../ai/skillExtrator.js";
+
+// const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
 
 export const matchResume = async (req, res) => {
   try {
@@ -69,12 +71,10 @@ export const matchResume = async (req, res) => {
     }
 
     //  AI CALL
-    const aiResponse = await axios.post(
-      `${AI_SERVICE_URL}/extract-job-skills`,
-      { text: jobDescription },
-    );
+    const { skills: jobSkills, confidence } =
+      await extractJobSkills(jobDescription);
 
-    const jobSkills = aiResponse.data.skills || [];
+    //const jobSkills = aiResponse.data.skills || [];
 
     //  NORMALIZE
     const normalize = (arr) =>

@@ -3,8 +3,8 @@ import { extractTextFromBuffer } from "../services/textExtractor.service.js";
 import axios from "axios";
 import crypto from "crypto";
 import "dotenv/config";
-
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
+import { extractJobSkills } from "../ai/skillExtrator.js";
+// const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
 
 export const uploadResume = async (req, res) => {
   try {
@@ -62,11 +62,9 @@ export const uploadResume = async (req, res) => {
     );
 
     // Call AI service
-    const aiResponse = await axios.post(`${AI_SERVICE_URL}/extract-skills`, {
-      text: extractedText,
-    });
+    const { skills: resumeSkills } = await extractResumeSkills(resumeText);
 
-    const { skills, confidence } = aiResponse.data;
+    //const { skills, confidence } = aiResponse.data;
 
     if (userId && resume) {
       // Logged-in — save to DB
