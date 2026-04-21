@@ -24,7 +24,7 @@ const resumeService = {
     const formData = new FormData();
     formData.append("resume", file);
 
-    const { data } = await API.post("/resumes/upload", formData, {
+    const { data } = await API.post("/api/resumes/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
