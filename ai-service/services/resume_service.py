@@ -5,6 +5,7 @@ from core.config import settings
 from utils.parser import clean_text
 from utils.json_safe import safe_json
 
+
 def extract_resume_skills(text: str):
 
     text = clean_text(text)
@@ -19,6 +20,6 @@ def extract_resume_skills(text: str):
 
     content = completion.choices[0].message.content or ""
 
-    print("RAW RESUME AI RESPONSE:", content)
+    # print("RAW RESUME AI RESPONSE:", content)
 
     return safe_json(content)
