@@ -9,7 +9,15 @@ import authRoutes from "./routes/authRoutes/auth.routes.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://ai-resume-analyzer-pi-beryl.vercel.app/",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(morgan("dev"));
 //app.use(globalLimiter());
