@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
 
 const API = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}/api`,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
@@ -24,7 +24,7 @@ const resumeService = {
     const formData = new FormData();
     formData.append("resume", file);
 
-    const { data } = await API.post("/api/resumes/upload", formData, {
+    const { data } = await API.post("/resumes/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -42,7 +42,7 @@ const resumeService = {
     resumeSkills: string[],
     guestId: string,
   ) => {
-    const { data } = await API.post("/api/match-resume", {
+    const { data } = await API.post("/match-resume", {
       resumeId,
       jobDescription,
       resumeSkills,
