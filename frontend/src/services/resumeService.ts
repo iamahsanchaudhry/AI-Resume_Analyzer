@@ -42,7 +42,7 @@ const resumeService = {
     resumeSkills: string[],
     guestId: string,
   ) => {
-    const { data } = await API.post("/match-resume", {
+    const { data } = await API.post("/api/match-resume", {
       resumeId,
       jobDescription,
       resumeSkills,
