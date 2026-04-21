@@ -61,7 +61,7 @@ export const uploadResume = async (req, res) => {
     );
 
     // Call AI service
-    const { skills: resumeSkills } = await extractResumeSkills(resumeText);
+    const { skills, confidence } = await extractResumeSkills(extractedText);
 
     //const { skills, confidence } = aiResponse.data;
 
