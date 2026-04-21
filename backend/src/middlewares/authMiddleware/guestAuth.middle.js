@@ -15,7 +15,7 @@ export const guestAuth = (req, res, next) => {
       req.user = decoded;
     }
   } catch (err) {
-    console.log("token error:", err.message); // ✅ see if token is expired
+    console.log("token error:", err.message); //see if token is expired
   }
   next();
 };

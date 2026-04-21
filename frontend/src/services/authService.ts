@@ -1,19 +1,45 @@
 // services/authService.ts
-import axios from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/auth",
+  baseURL: `${BASE_URL}/auth`,
+  timeout: 15000, // 15s — sane ceiling so hung requests fail instead of spinning forever
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-API.interceptors.request.use((config) => {
+API.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("token");
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
+
+API.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ message?: string }>) => {
+    // Token is expired / invalid — boot the user.
+    // Guard against redirect loops if we're already on /login.
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
+    // Normalize the error message so call sites get a consistent shape.
+    const message =
+      error.response?.data?.message ??
+      error.message ??
+      "Something went wrong. Please try again.";
+
+    return Promise.reject(new Error(message));
+  },
+);
 
 export const login = (email: string, password: string) =>
   API.post("/login", { email, password });

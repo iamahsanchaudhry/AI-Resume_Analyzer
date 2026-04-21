@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import resumeService from "../services/resumeService";
-import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import Toaster from "@/components/shared/Toaster";
 
 interface Skill {
   name: string;
@@ -29,14 +29,27 @@ export default function useResumeAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [requestId, setRequestId] = useState(0);
   const { user } = useAuth();
 
   const [showGuestPopup, setShowGuestPopup] = useState(false);
 
+  //  fix stale request bug
+  const requestRef = useRef(0);
+
+  //  guest ID
+  const getGuestId = () => {
+    let id = localStorage.getItem("guestId");
+
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("guestId", id);
+    }
+
+    return id;
+  };
+
   const analyzeResume = async () => {
-    const currentRequest = requestId + 1;
-    setRequestId(currentRequest);
+    const currentRequest = ++requestRef.current;
 
     if (!file || !jobDescription.trim()) {
       setError("Please upload resume and enter job description");
@@ -50,22 +63,28 @@ export default function useResumeAnalyzer() {
       setError(null);
       setResult(null);
 
+      // 1. Upload resume
       const uploadRes = await resumeService.uploadResume(file);
       const resumeId = uploadRes?.resumeId;
       const resumeSkills = uploadRes?.skills || [];
 
-      if (!resumeId && user) throw new Error("Failed to upload resume");
+      if (!resumeId && user) {
+        throw new Error("Failed to upload resume");
+      }
 
+      // 2. Analyze
       const response = await resumeService.analyzeResume(
         resumeId,
         jobDescription,
         resumeSkills,
+        getGuestId(),
       );
 
-      // ❗ Ignore stale responses
-      if (currentRequest !== requestId + 1) return;
+      //  ignore stale responses
+      if (currentRequest !== requestRef.current) return;
 
-      const formatted = {
+      // 3. format result
+      const formatted: AnalysisResult = {
         score: response?.matchScore ?? 0,
         skills: [
           ...(response?.matchedSkills ?? []).map((s: string) => ({
@@ -96,29 +115,32 @@ export default function useResumeAnalyzer() {
 
       setResult(formatted);
 
-      toast.success("Analysis Complete", {
-        description:
-          "Your resume analysis is complete. Check the results below!",
-        action: {
-          label: "Close",
-          onClick: () => toast.dismiss(),
-        },
-      });
+      Toaster(
+        "success",
+        "Analysis Complete",
+        "Your resume analysis is complete. Check the results below!",
+      );
 
-      if (response?.guest) {
-        setShowGuestPopup(true);
+      if (!user) {
+        setTimeout(() => {
+          setShowGuestPopup(true);
+        }, 1500);
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.response?.data?.message || "Something went wrong");
 
-      toast.error("Something went wrong", {
-        description:
-          err.message || "Unable to analyze resume. Please try again.",
-        action: {
-          label: "Close",
-          onClick: () => toast.dismiss(),
-        },
-      });
+      Toaster(
+        "error",
+        "Something went wrong",
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to analyze resume. Please try again.",
+      );
+
+      // optional: show popup if blocked by backend
+      if (err.response?.data?.blocked) {
+        setShowGuestPopup(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -132,6 +154,7 @@ export default function useResumeAnalyzer() {
     result,
     loading,
     error,
+    setError,
     analyzeResume,
     showGuestPopup,
     setShowGuestPopup,

@@ -18,6 +18,7 @@ type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   error: string | null;
+  setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
@@ -58,7 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error: any) {
         localStorage.removeItem("token");
         setUser(null);
-        setError(error.message || "Session expired");
+        setError(
+          error.response?.data?.message || error.message || "Session expired",
+        );
 
         Toaster("error", "Session Expired", "Please login again.");
       } finally {
@@ -87,7 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Signup Failed",
         error.response?.data?.message || error.message || "Signup failed",
       );
-      setError(error.message || "Signup failed");
+      setError(
+        error.response?.data?.message || error.message || "Signup failed",
+      );
       throw error;
     } finally {
       setLoading(false);
@@ -115,7 +120,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Login Failed",
         error.response?.data?.message || error.message || "Login failed",
       );
-      setError(error.message || "Login failed");
+      setError(
+        error.response?.data?.message || error.message || "Login failed",
+      );
       throw error;
     } finally {
       setLoading(false);
@@ -136,7 +143,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Logout Failed",
         error.response?.data?.message || error.message || "Logout failed",
       );
-      setError(error.message || "Logout failed");
+      setError(
+        error.response?.data?.message || error.message || "Logout failed",
+      );
     } finally {
       setLoading(false);
     }
@@ -155,7 +164,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           error.message ||
           "Failed to fetch profile",
       );
-      setError(error.message || "Failed to fetch profile");
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch profile",
+      );
     } finally {
       setLoading(false);
     }
@@ -174,7 +187,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Update Failed",
         error.response?.data?.message || error.message || "Update failed",
       );
-      setError(error.message || "Update failed");
+      setError(
+        error.response?.data?.message || error.message || "Update failed",
+      );
       throw error;
     } finally {
       setLoading(false);
@@ -197,7 +212,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           error.message ||
           "Password update failed",
       );
-      setError(error.message || "Password update failed");
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "Password update failed",
+      );
       throw error;
     } finally {
       setLoading(false);
@@ -211,6 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoggedIn: !!user,
         loading,
         error,
+        setError,
         setLoading,
         login,
         signup,

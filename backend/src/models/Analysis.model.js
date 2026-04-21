@@ -9,10 +9,20 @@ const analysisSchema = new mongoose.Schema(
       index: true,
     },
 
+    guestId: {
+      type: String,
+      required: false,
+    },
+
+    ip: {
+      type: String,
+      required: false,
+    },
+
     resumeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Resume",
-      required: true,
+      required: false,
       index: true,
     },
 

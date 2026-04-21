@@ -1,18 +1,62 @@
 import Resume from "../models/Resume.model.js";
 import Analysis from "../models/Analysis.model.js";
 import { matchSkills } from "../utils/skillMatcher.js";
-
 import axios from "axios";
+
+const extractIp = (req) => {
+  return (
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip
+  );
+};
 
 export const matchResume = async (req, res) => {
   try {
-    const { resumeId, jobDescription, resumeSkills } = req.body;
+    const { resumeId, jobDescription, resumeSkills, guestId } = req.body;
 
-    const userId = req.user?.userId;
+    if (!jobDescription) {
+      return res.status(400).json({ message: "Job description is required" });
+    }
+
+    const ip = extractIp(req);
+    const userId = req.user?.userId || null;
+    const isGuest = !userId;
+
+    // BLOCK guest after one use
+    if (isGuest) {
+      if (!guestId) {
+        return res.status(400).json({ message: "guestId is required" });
+      }
+
+      const alreadyUsed = await Analysis.findOne({
+        $or: [{ guestId }, { ip }],
+      });
+
+      if (alreadyUsed) {
+        return res.status(403).json({
+          guest: true,
+          blocked: true,
+          message: "Login required after free usage",
+        });
+      }
+    }
+
+    if (userId && guestId) {
+      const guestRecord = await Analysis.findOne({
+        $or: [{ guestId }, { ip }],
+      });
+      guestRecord.userId = userId;
+      guestRecord.resumeId = resumeId;
+
+      await guestRecord.save();
+    }
+
+    //  GET RESUME SKILLS
     let resume_Skills = resumeSkills || [];
 
-    if (resumeId && userId) {
-      // 1. Get resume
+    if (userId && resumeId) {
       const resume = await Resume.findById(resumeId);
 
       if (!resume) {
@@ -22,7 +66,7 @@ export const matchResume = async (req, res) => {
       resume_Skills = resume.skills || [];
     }
 
-    // 2. Get job skills from AI service
+    //  AI CALL
     const aiResponse = await axios.post(
       "http://127.0.0.1:8000/extract-job-skills",
       { text: jobDescription },
@@ -30,7 +74,7 @@ export const matchResume = async (req, res) => {
 
     const jobSkills = aiResponse.data.skills || [];
 
-    // 3. NORMALIZE (IMPORTANT FIX)
+    //  NORMALIZE
     const normalize = (arr) =>
       arr.map((s) =>
         s
@@ -43,13 +87,13 @@ export const matchResume = async (req, res) => {
     const normalizedResume = normalize(resume_Skills);
     const normalizedJob = normalize(jobSkills);
 
-    // 4. MATCH using normalized data
+    //  MATCH
     const { matchedSkills, missingSkills, weakMatches } = matchSkills(
       normalizedResume,
       normalizedJob,
     );
 
-    // 5. SCORE
+    //  SCORE
     const total = normalizedJob.length;
 
     const score =
@@ -59,54 +103,49 @@ export const matchResume = async (req, res) => {
             ((matchedSkills.length + weakMatches.length * 0.5) / total) * 100,
           );
 
-    // 6. FEEDBACK
+    //  FEEDBACK
     const feedback = [];
 
     if (missingSkills.length > 0) {
-      feedback.push(
-        `You are missing key skills: ${missingSkills.slice(0, 5).join(", ")}`,
-      );
+      feedback.push(`Missing skills: ${missingSkills.slice(0, 5).join(", ")}`);
     }
 
     if (weakMatches.length > 0) {
-      feedback.push(
-        `Partial matches found (improve naming or usage): ${weakMatches.slice(0, 5).join(", ")}`,
-      );
+      feedback.push(`Weak matches: ${weakMatches.slice(0, 5).join(", ")}`);
     }
 
     if (score > 70) {
-      feedback.push("Strong match for this role 🎯");
+      feedback.push("Strong match 🎯");
     } else if (score > 40) {
-      feedback.push("Moderate match — some improvements needed");
+      feedback.push("Moderate match");
     } else {
-      feedback.push("Low match — consider upskilling for this role");
+      feedback.push("Low match");
     }
 
-    //saving analysis to DB if user is logged in and resumeId is provided
-    if (resumeId && userId) {
-      const analysisData = await Analysis.create({
-        userId,
-        resumeId,
-        jobDescription,
-        score,
-        matchedSkills: matchedSkills,
-        missingSkills: missingSkills,
-        weakMatches: weakMatches,
-        jobSkills: jobSkills,
-        feedback: feedback,
-        status: "completed",
-      });
-    }
-    const isGuest = !userId || !resumeId;
-    // 7. RESPONSE
-    res.status(201).json({
+    //  SINGLE DB WRITE (FIXED)
+    await Analysis.create({
+      userId: userId || null,
+      guestId: isGuest ? guestId : null,
+      ip: isGuest ? ip : null,
+      resumeId: userId ? resumeId : null,
+      jobDescription,
+      score,
+      matchedSkills,
+      missingSkills,
+      weakMatches,
+      jobSkills,
+      feedback,
+      status: "completed",
+    });
+
+    //  RESPONSE
+    res.status(200).json({
       matchScore: score,
       matchedSkills,
       missingSkills,
       weakMatches,
       jobSkills,
       feedback,
-      guest: isGuest,
     });
   } catch (error) {
     res.status(500).json({

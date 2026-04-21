@@ -1,6 +1,14 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+
+const API = axios.create({
+  baseURL: `${BASE_URL}`,
+  timeout: 15000, // 15s — sane ceiling so hung requests fail instead of spinning forever
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 // Attach token if available, otherwise skip
 const authHeaders = () => {
@@ -29,10 +37,11 @@ const resumeService = {
     resumeId: string,
     jobDescription: string,
     resumeSkills: string[],
+    guestId: string,
   ) => {
     const { data } = await axios.post(
       `${API}/match-resume`,
-      { resumeId, jobDescription, resumeSkills },
+      { resumeId, jobDescription, resumeSkills, guestId },
       {
         headers: {
           ...authHeaders(),

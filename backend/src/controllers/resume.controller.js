@@ -24,10 +24,9 @@ export const uploadResume = async (req, res) => {
 
       if (resume?.status === "processed") {
         console.log("Duplicate found for user, returning existing record");
-        // ✅ return response, not the document
         return res.status(200).json({
           message: "Resume already processed",
-          resumeId: resume._id, // ✅ _id not resumeId
+          resumeId: resume._id, // _id not resumeId
           skills: resume.skills,
           confidence: resume.aiConfidence,
           guest: false,
