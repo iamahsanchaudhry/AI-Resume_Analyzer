@@ -3,8 +3,7 @@ import { extractTextFromBuffer } from "../services/textExtractor.service.js";
 import axios from "axios";
 import crypto from "crypto";
 import "dotenv/config";
-import { extractJobSkills } from "../ai/skillExtrator.js";
-// const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
+import { extractResumeSkills } from "../ai/skillExtrator.js";
 
 export const uploadResume = async (req, res) => {
   try {
