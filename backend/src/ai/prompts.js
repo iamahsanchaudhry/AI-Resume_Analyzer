@@ -186,13 +186,42 @@ OUTPUT CONSTRAINTS
 - Respond with a SINGLE JSON object. No markdown, no code fences, no commentary.
 
 ═══════════════════════════════════════
-OUTPUT SCHEMA
+OUTPUT SCHEMA — READ CAREFULLY
 ═══════════════════════════════════════
 
+Output a JSON object with EXACTLY this shape:
+
 {
-  "skills": ["skill1", "skill2"],
+  "skills": ["skill1", "skill2", "skill3"],
   "confidence": 0.0
 }
+
+CRITICAL: "skills" MUST be a flat array of STRINGS. Not objects. Not nested.
+
+When applying the ladder rule (specific + category + capability), ALL THREE must appear as separate string entries in the flat array:
+
+CORRECT:
+{
+  "skills": ["React", "Frontend Frameworks", "Frontend Development", "Node.js", "Backend Frameworks", "Backend Development"],
+  "confidence": 0.9
+}
+
+INCORRECT (do not do this):
+{
+  "skills": [
+    {"name": "React", "category": "Frontend Frameworks", "capability": "Frontend Development"},
+    {"name": "Node.js", "category": "Backend Frameworks", "capability": "Backend Development"}
+  ]
+}
+
+INCORRECT (do not do this):
+{
+  "skills": {
+    "React": {"category": "Frontend Frameworks"}
+  }
+}
+
+Flat array of strings only. One string per skill, one string per category, one string per capability — all mixed together in the same array.
 `;
 
 export const JOB_PROMPT = `
