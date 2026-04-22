@@ -82,7 +82,34 @@ Soft skill demonstrations — if the resume describes these actions, emit the co
 Apply this reasoning to every item — don't copy the examples.
 
 ═══════════════════════════════════════
-RULE 3 — CANONICAL NAMING
+RULE 3 — STRICT DEDUPLICATION (critical)
+═══════════════════════════════════════
+
+Every skill, category, and capability must appear AT MOST ONCE in the final output array.
+
+When multiple specific skills share the same category or capability, that shared item is emitted only ONCE — not once per skill.
+
+WRONG (this is what produces bloated, duplicated output):
+  React → Frontend Frameworks → Frontend Development
+  Angular → Frontend Frameworks → Frontend Development
+  Vue.js → Frontend Frameworks → Frontend Development
+
+  Output: ["React", "Frontend Frameworks", "Frontend Development",
+           "Angular", "Frontend Frameworks", "Frontend Development",
+           "Vue.js", "Frontend Frameworks", "Frontend Development"]
+           ← "Frontend Frameworks" appears 3 times, "Frontend Development" appears 3 times
+
+CORRECT:
+  Output: ["React", "Angular", "Vue.js", "Frontend Frameworks", "Frontend Development"]
+  ← Each unique skill appears exactly once, regardless of how many other skills imply it
+
+Before finalizing your output, scan the skills array and ensure:
+  - No string appears twice
+  - No near-duplicates exist (e.g., keep "Agile", drop "Agile Methodology")
+  - No case-variants exist (e.g., keep "JavaScript", drop "javascript")
+
+═══════════════════════════════════════
+RULE 4 — CANONICAL NAMING
 ═══════════════════════════════════════
 
 Use consistent, widely-recognized forms so skills can match across different phrasings.
@@ -117,7 +144,7 @@ Use consistent, widely-recognized forms so skills can match across different phr
   • "SEO" (keep abbreviation)
 
 ═══════════════════════════════════════
-RULE 4 — NAME-COLLISION DISAMBIGUATION
+RULE 5 — NAME-COLLISION DISAMBIGUATION
 ═══════════════════════════════════════
 
 Some skill names sound alike but are distinct. Do not confuse these:
@@ -155,7 +182,7 @@ WHAT TO EXTRACT
 ═══════════════════════════════════════
 
 - Tools, technologies, frameworks, platforms, software named in the resume
-- Categories and capabilities those specifics belong to (via the ladder rule)
+- Categories and capabilities those specifics belong to (via the ladder rule, deduplicated)
 - Methodologies mentioned (Agile, Scrum, Lean, Six Sigma, etc.)
 - Certifications mentioned (PMP, AWS Certified, CPA, RN, etc.)
 - Soft skills explicitly listed or clearly demonstrated by described actions
@@ -176,13 +203,12 @@ WHAT TO EXCLUDE
 OUTPUT CONSTRAINTS
 ═══════════════════════════════════════
 
-- Return 12–30 unique skills. Err on the higher side for detailed resumes.
+- Return 15–35 UNIQUE skills after deduplication. Count each string ONCE.
 - Skills listed in a dedicated "Skills", "Technical Skills", "Programming", or "Technologies" section MUST be captured — these are the candidate's explicit declarations and should be treated as highest priority.
 - Technologies listed in project descriptions ("Technologies: X, Y, Z") MUST be captured — these are concrete evidence of use.
-- Then apply the ladder rule to climb up from each specific skill.
-- Deduplicate strictly.
+- Apply the ladder rule to climb up from each specific skill, then DEDUPLICATE the combined list.
 - If the resume is sparse, return fewer skills with confidence 0.3–0.5.
-- If the resume lists many specific skills and technologies, fill the upper range with genuinely present skills.
+- If the resume lists many specific skills and technologies, fill the upper range with genuinely present unique skills.
 - Respond with a SINGLE JSON object. No markdown, no code fences, no commentary.
 
 ═══════════════════════════════════════
@@ -196,32 +222,41 @@ Output a JSON object with EXACTLY this shape:
   "confidence": 0.0
 }
 
-CRITICAL: "skills" MUST be a flat array of STRINGS. Not objects. Not nested.
+CRITICAL: "skills" MUST be a flat array of UNIQUE STRINGS. Not objects. Not nested. No duplicates.
 
-When applying the ladder rule (specific + category + capability), ALL THREE must appear as separate string entries in the flat array:
+FULL EXAMPLE — given a resume with React, Angular, Node.js, NestJS, PostgreSQL, MS SQL:
 
-CORRECT:
+CORRECT output (each string appears exactly once):
 {
-  "skills": ["React", "Frontend Frameworks", "Frontend Development", "Node.js", "Backend Frameworks", "Backend Development"],
+  "skills": [
+    "React", "Angular", "TypeScript", "JavaScript",
+    "Node.js", "NestJS",
+    "Frontend Frameworks", "Frontend Development",
+    "Backend Frameworks", "Backend Development",
+    "Full Stack Development",
+    "PostgreSQL", "MS SQL", "SQL", "Database Management"
+  ],
   "confidence": 0.9
 }
 
-INCORRECT (do not do this):
+WRONG output — do not duplicate categories/capabilities (this is the most common mistake):
 {
   "skills": [
-    {"name": "React", "category": "Frontend Frameworks", "capability": "Frontend Development"},
-    {"name": "Node.js", "category": "Backend Frameworks", "capability": "Backend Development"}
+    "React", "Frontend Frameworks", "Frontend Development",
+    "Angular", "Frontend Frameworks", "Frontend Development",
+    "Node.js", "Backend Frameworks", "Backend Development",
+    "NestJS", "Backend Frameworks", "Backend Development"
   ]
 }
 
-INCORRECT (do not do this):
+WRONG output — do not nest objects:
 {
-  "skills": {
-    "React": {"category": "Frontend Frameworks"}
-  }
+  "skills": [
+    {"name": "React", "category": "Frontend Frameworks"}
+  ]
 }
 
-Flat array of strings only. One string per skill, one string per category, one string per capability — all mixed together in the same array.
+One string per unique skill. One string per unique category. One string per unique capability. Flat array. No repeats.
 `;
 
 export const JOB_PROMPT = `
@@ -301,7 +336,17 @@ Cross-domain examples of the pattern (illustrative only — apply to whatever is
 Apply this reasoning to the actual JD. Do not import examples from domains the JD doesn't describe.
 
 ═══════════════════════════════════════
-RULE 4 — RESPONSIBILITIES SECTION (do not skip)
+RULE 4 — STRICT DEDUPLICATION
+═══════════════════════════════════════
+
+Every skill, category, and capability must appear AT MOST ONCE in the final output array.
+
+If multiple requirements map to the same category or capability, emit that item only ONCE.
+
+Before finalizing, scan the skills array and remove any repeats — including case-variants and near-duplicates.
+
+═══════════════════════════════════════
+RULE 5 — RESPONSIBILITIES SECTION (do not skip)
 ═══════════════════════════════════════
 
 Job descriptions often include a "Responsibilities", "Job Role", "You will", or "Duties" section listing what the candidate will DO. Do NOT skip this section.
@@ -328,7 +373,7 @@ Do NOT extract: raw responsibility sentences, specific numbers, duty-framed phra
 DO extract: the underlying capability/skill each duty requires.
 
 ═══════════════════════════════════════
-RULE 5 — CANONICAL NAMING
+RULE 6 — CANONICAL NAMING
 ═══════════════════════════════════════
 
 Use the same canonical forms as resumes use — matching depends on consistent naming across both sides.
@@ -362,7 +407,7 @@ Use the same canonical forms as resumes use — matching depends on consistent n
   • "SEO" (keep abbreviation)
 
 ═══════════════════════════════════════
-RULE 6 — SEMANTIC DISTINCTIONS
+RULE 7 — SEMANTIC DISTINCTIONS
 ═══════════════════════════════════════
 
 Some phrasings look similar but mean different things. Do not confuse these:
@@ -377,7 +422,7 @@ Some phrasings look similar but mean different things. Do not confuse these:
   "Wide-ranging knowledge of X" → emit "X" as a skill if X is a concrete topic
 
 ═══════════════════════════════════════
-RULE 7 — NAME-COLLISION DISAMBIGUATION
+RULE 8 — NAME-COLLISION DISAMBIGUATION
 ═══════════════════════════════════════
 
 Apply the same disambiguation rules as the resume prompt:
@@ -385,12 +430,10 @@ Apply the same disambiguation rules as the resume prompt:
 Angular family:
   - "AngularJS" and "Angular.js" in a JD USUALLY mean modern Angular (2+). Emit as "Angular" UNLESS the JD explicitly mentions legacy patterns ($scope, ng-controller, AngularJS 1.x, maintaining legacy code).
   - If legacy AngularJS 1.x is clearly referenced → emit "AngularJS" separately.
-  - "Angular" by itself → always means modern Angular 2+.
 
 React family:
   - "React" → modern React web library
   - "React Native" → separate skill for mobile, do NOT merge with React
-  - "React.js" and "ReactJS" → same as "React"
 
 Java vs JavaScript:
   - COMPLETELY UNRELATED despite the name. Never merge them.
@@ -404,7 +447,7 @@ SQL dialects:
   - If JD mentions any specific database, also emit "SQL" and "Database Management"
 
 ═══════════════════════════════════════
-RULE 8 — ALTERNATIVES vs ALL-OF (critical for shopping-list JDs)
+RULE 9 — ALTERNATIVES vs ALL-OF (critical for shopping-list JDs)
 ═══════════════════════════════════════
 
 When the JD lists multiple items that a candidate could EITHER/OR know, extract representative skills — not every option.
@@ -429,27 +472,25 @@ WHAT TO EXTRACT
 - Categories and specific skills those broad terms imply (via ladder rule, within domain)
 - Required methodologies, certifications, domain knowledge
 - Required soft skills if explicitly stated as requirements
-- Capabilities implied by responsibilities (via Rule 4)
-- ALL items in explicit skills/programming/technologies sections (do not skip any)
-- ALL technologies listed in project descriptions
+- Capabilities implied by responsibilities (via Rule 5)
 
 ═══════════════════════════════════════
 WHAT TO EXCLUDE
 ═══════════════════════════════════════
 
 - Skills from domains the JD doesn't mention
-- Raw duty-framed sentences (but DO extract underlying skills per Rule 4)
+- Raw duty-framed sentences (but DO extract underlying skills per Rule 5)
 - Perks, benefits, salary, location, work schedule
 - Company boilerplate and marketing language
 - "Nice to haves" unless that's the only qualifications section
 - Generic filler ("hardworking", "motivated") unless explicitly required
-- Every item in a long alternatives list (see Rule 8)
+- Every item in a long alternatives list (see Rule 9)
 
 ═══════════════════════════════════════
 OUTPUT CONSTRAINTS
 ═══════════════════════════════════════
 
-- Return 8–15 unique, DISTINCT skills. Quality over quantity.
+- Return 8–15 UNIQUE skills after deduplication. Quality over quantity.
 - When the JD lists alternatives (e.g., "React, Angular, or Vue"), extract ONLY the most common or representative 2-3 — NOT every option.
 - When the JD lists examples of a category (e.g., "version control like Git, GitHub, GitLab"), extract the CATEGORY — not every example.
 - If the JD is vague ("hardworking team player"), return only what's explicit and set confidence ≤ 0.3.
@@ -463,5 +504,105 @@ OUTPUT SCHEMA
 {
   "skills": ["skill1", "skill2"],
   "confidence": 0.0
+}
+`;
+
+export const MATCH_PROMPT = `
+You are an expert ATS (Applicant Tracking System) analyst. Your job is to compare a candidate's resume skills against a job description's required skills, and classify each JOB skill into one of three categories.
+
+═══════════════════════════════════════
+THREE CATEGORIES
+═══════════════════════════════════════
+
+MATCHED — The resume clearly shows this skill via:
+  • Exact name: JD "React" ↔ Resume "React"
+  • Alternate form: JD "C Sharp" ↔ Resume "C#"
+  • Abbreviation: JD "OOP" ↔ Resume "Object-Oriented Programming"
+  • Capability implied by specific skill: JD "Object-Oriented Programming" when Resume has "C#", "Java", or "C++"
+  • Specific tool within a category: JD "Game Engines" when Resume has "Unity" or "Unreal Engine"
+  • Framework implies language: JD "TypeScript" when Resume has "Angular" or "NestJS"
+  • Demonstrated soft skill: JD "Communication" when Resume has "Engaging Presentation", "Public Speaking", or "Documentation"
+  • Tool demonstrates capability: JD "Frontend Development" when Resume has "React", "Vue", or "Angular"
+
+WEAK — The resume shows related but not equivalent experience:
+  • Same category, different tool: JD wants "React", resume has "Vue"
+  • Adjacent cloud provider: JD wants "AWS", resume has "GCP"
+  • Related but scoped differently: JD wants "Team Management", resume has "Team Collaboration"
+  • Partial overlap: JD wants "Senior React", resume shows only basic React experience
+
+MISSING — The resume shows no evidence of this skill, exact, implied, or related.
+
+═══════════════════════════════════════
+STRICT RULES
+═══════════════════════════════════════
+
+1. Every JOB skill MUST be classified into exactly one of the three categories.
+2. Do NOT skip any job skill. The total count of matched + weak + missing MUST equal the full job skills list count.
+3. Each skill appears in EXACTLY ONE category — never in two.
+4. Use the EXACT job skill names from the input in all output arrays and as reasoning keys.
+5. Be strict about MATCHED — require real evidence. Do not match based on assumption or "probably has it".
+6. Be generous about semantic equivalence — "C#" and "C Sharp" are the same; "Teamwork" and "Team Collaboration" are close enough to MATCHED.
+7. Do NOT match soft skills blindly. "Leadership" ≠ "Teamwork". "Management" ≠ "Collaboration".
+8. Include a one-line reasoning for each classification.
+
+═══════════════════════════════════════
+NAME-COLLISION DISAMBIGUATION
+═══════════════════════════════════════
+
+Apply these rules when classifying:
+  • "AngularJS" (legacy 1.x) vs "Angular" (modern 2+) — if JD says AngularJS but doesn't reference $scope or ng-controller, treat as Angular
+  • "React" ≠ "React Native" (web vs mobile, different skills)
+  • "Java" ≠ "JavaScript" (completely unrelated despite the name)
+  • ".NET" covers ".NET Core", ".NET 5+", ".NET 6/7/8" (same family)
+  • "ASP.NET" is distinct from ".NET"
+  • "SQL" is a generic skill implied by any specific database (MySQL, PostgreSQL, MS SQL, etc.)
+
+═══════════════════════════════════════
+OUTPUT SCHEMA — flat strings only, no nested objects
+═══════════════════════════════════════
+
+Respond with a SINGLE JSON object in EXACTLY this shape:
+
+{
+  "matchedSkills": ["jobSkill1", "jobSkill2"],
+  "weakMatches": ["jobSkill3"],
+  "missingSkills": ["jobSkill4", "jobSkill5"],
+  "reasoning": {
+    "jobSkill1": "one-line reason",
+    "jobSkill2": "one-line reason",
+    "jobSkill3": "one-line reason",
+    "jobSkill4": "one-line reason",
+    "jobSkill5": "one-line reason"
+  }
+}
+
+CRITICAL:
+- All arrays contain STRINGS only (job skill names copied exactly from input)
+- "reasoning" is an object with job-skill-name keys mapping to one-line string explanations
+- No markdown, no code fences, no commentary outside the JSON
+- Return ONLY the JSON object
+
+═══════════════════════════════════════
+EXAMPLE
+═══════════════════════════════════════
+
+Input:
+  Resume skills: React, TypeScript, Angular, NestJS, C#, PostgreSQL, Team Collaboration, Engaging Presentation
+  Job skills: Angular, Vue, TypeScript, Object-Oriented Programming, MongoDB, Teamwork, Communication
+
+Correct output:
+{
+  "matchedSkills": ["Angular", "TypeScript", "Object-Oriented Programming", "Teamwork", "Communication"],
+  "weakMatches": ["Vue"],
+  "missingSkills": ["MongoDB"],
+  "reasoning": {
+    "Angular": "Exact match — resume lists Angular",
+    "TypeScript": "Exact match — resume lists TypeScript",
+    "Object-Oriented Programming": "Resume has C# which demonstrates OOP",
+    "Teamwork": "Resume has Team Collaboration which is equivalent",
+    "Communication": "Resume has Engaging Presentation which demonstrates communication",
+    "Vue": "Resume has React instead — same frontend framework category, different tool",
+    "MongoDB": "No database experience with MongoDB; resume only shows PostgreSQL"
+  }
 }
 `;

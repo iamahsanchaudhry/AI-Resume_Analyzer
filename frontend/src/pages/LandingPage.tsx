@@ -584,18 +584,18 @@ export default function LandingPage() {
               type="single"
               collapsible
               defaultValue="how-it-works"
-              className="space-y-2"
+              className="space-y-3"
             >
               {faqs.map((faq) => (
                 <AccordionItem
                   key={faq.value}
                   value={faq.value}
-                  className="border border-zinc-200 dark:border-zinc-800 rounded-xl px-5 bg-white dark:bg-zinc-900 shadow-sm dark:shadow-none overflow-hidden data-[state=open]:border-zinc-300 dark:data-[state=open]:border-zinc-700 transition-all duration-200"
+                  className="not-last:border-b-0 border border-zinc-200 dark:border-zinc-800 rounded-xl px-5 bg-white dark:bg-zinc-900 shadow-sm dark:shadow-none overflow-hidden data-[state=open]:border-emerald-500/40 dark:data-[state=open]:border-emerald-400/30 data-[state=open]:shadow-md data-[state=open]:shadow-emerald-500/5 transition-all duration-300"
                 >
-                  <AccordionTrigger className="text-left text-sm md:text-base font-medium py-4 hover:no-underline text-zinc-900 dark:text-zinc-100">
+                  <AccordionTrigger className="text-left text-sm md:text-base font-medium py-4 hover:no-underline text-zinc-900 dark:text-zinc-100 [&>svg]:text-zinc-400 dark:[&>svg]:text-zinc-500 [&>svg]:transition-colors [&[data-state=open]>svg]:text-emerald-500 dark:[&[data-state=open]>svg]:text-emerald-400">
                     {faq.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-sm text-zinc-500 dark:text-zinc-400 pb-4 leading-relaxed">
+                  <AccordionContent className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>

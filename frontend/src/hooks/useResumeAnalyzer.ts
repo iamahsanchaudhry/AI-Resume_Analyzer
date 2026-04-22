@@ -6,6 +6,7 @@ import Toaster from "@/components/shared/Toaster";
 interface Skill {
   name: string;
   status: "matched" | "missing" | "partial";
+  reasoning?: string;
 }
 
 interface Feedback {
@@ -18,33 +19,29 @@ interface AnalysisResult {
   score: number;
   skills: Skill[];
   feedback: Feedback[];
+  matchMethod?: "ai" | "deterministic";
 }
 
 export default function useResumeAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuth();
-
   const [showGuestPopup, setShowGuestPopup] = useState(false);
 
-  //  fix stale request bug
   const requestRef = useRef(0);
 
-  //  guest ID
   const getGuestId = () => {
     let id = localStorage.getItem("guestId");
-
     if (!id) {
       id = crypto.randomUUID();
       localStorage.setItem("guestId", id);
     }
-
     return id;
   };
 
@@ -63,7 +60,8 @@ export default function useResumeAnalyzer() {
       setError(null);
       setResult(null);
 
-      // 1. Upload resume
+      // STEP 1 — read resume
+      setLoadingStep("Reading your resume...");
       const uploadRes = await resumeService.uploadResume(file);
       const resumeId = uploadRes?.resumeId;
       const resumeSkills = uploadRes?.skills || [];
@@ -72,7 +70,10 @@ export default function useResumeAnalyzer() {
         throw new Error("Failed to upload resume");
       }
 
-      // 2. Analyze
+      if (currentRequest !== requestRef.current) return;
+
+      // STEP 2 — analyze job description
+      setLoadingStep("Analyzing job description...");
       const response = await resumeService.analyzeResume(
         resumeId,
         jobDescription,
@@ -80,24 +81,31 @@ export default function useResumeAnalyzer() {
         getGuestId(),
       );
 
-      //  ignore stale responses
       if (currentRequest !== requestRef.current) return;
 
-      // 3. format result
+      // STEP 3 — scoring (brief final step before results)
+      setLoadingStep("Scoring your match...");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const reasoning: Record<string, string> = response?.reasoning ?? {};
+
       const formatted: AnalysisResult = {
         score: response?.matchScore ?? 0,
         skills: [
           ...(response?.matchedSkills ?? []).map((s: string) => ({
             name: s,
-            status: "matched",
-          })),
-          ...(response?.missingSkills ?? []).map((s: string) => ({
-            name: s,
-            status: "missing",
+            status: "matched" as const,
+            reasoning: reasoning[s],
           })),
           ...(response?.weakMatches ?? []).map((s: string) => ({
             name: s,
-            status: "partial",
+            status: "partial" as const,
+            reasoning: reasoning[s],
+          })),
+          ...(response?.missingSkills ?? []).map((s: string) => ({
+            name: s,
+            status: "missing" as const,
+            reasoning: reasoning[s],
           })),
         ],
         feedback: Array.isArray(response?.feedback)
@@ -111,15 +119,17 @@ export default function useResumeAnalyzer() {
               description: text,
             }))
           : [],
+        matchMethod: response?.matchMethod,
       };
 
       setResult(formatted);
 
-      Toaster(
-        "success",
-        "Analysis Complete",
-        "Your resume analysis is complete. Check the results below!",
-      );
+      Toaster({
+        type: "success",
+        message: "Analysis Complete",
+        description:
+          "Your resume analysis is complete. Check the results below!",
+      });
 
       if (!user) {
         setTimeout(() => {
@@ -127,21 +137,27 @@ export default function useResumeAnalyzer() {
         }, 1500);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
-
-      Toaster(
-        "error",
-        "Something went wrong",
+      console.error("Analyze error:", err);
+      const errorMessage =
+        err.response?.data?.error ||
         err.response?.data?.message ||
-          "Unable to analyze resume. Please try again.",
-      );
+        err.message ||
+        "Something went wrong";
 
-      // optional: show popup if blocked by backend
+      setError(errorMessage);
+
+      Toaster({
+        type: "error",
+        message: "Analysis failed",
+        description: errorMessage,
+      });
+
       if (err.response?.data?.blocked) {
         setShowGuestPopup(true);
       }
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   };
 
@@ -152,6 +168,7 @@ export default function useResumeAnalyzer() {
     setJobDescription,
     result,
     loading,
+    loadingStep,
     error,
     setError,
     analyzeResume,

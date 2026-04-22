@@ -2,7 +2,6 @@ import InputPanel from "@/components/analyzer/InputPanel";
 import ResultsView from "@/components/analyzer/ResultsView";
 import UploadZone from "@/components/analyzer/UploadZone";
 import AuthDialog from "@/components/shared/AuthDialog";
-import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import { Badge } from "@/components/ui/badge";
 import useResumeAnalyzer from "@/hooks/useResumeAnalyzer";
 import {
@@ -140,6 +139,7 @@ export default function ResumeAnalyzerPage() {
     analyzeResume,
     result,
     loading,
+    loadingStep,
     error,
     setError,
     showGuestPopup,
@@ -319,23 +319,163 @@ export default function ResumeAnalyzerPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="flex justify-center py-8"
             >
-              <div className="relative rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-8 py-6 shadow-lg overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-violet-500/5 to-purple-500/5" />
+              <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm p-8 shadow-xl shadow-blue-500/5 overflow-hidden">
+                {/* Ambient gradient wash */}
                 <motion.div
-                  animate={{ opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="relative flex flex-col items-center gap-3"
-                >
-                  <LoadingSpinner />
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
-                    Analyzing your resume…
-                  </span>
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    This usually takes under 10 seconds
-                  </span>
-                </motion.div>
+                  animate={{
+                    background: [
+                      "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 50%, rgba(168, 85, 247, 0.08) 100%)",
+                      "linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(59, 130, 246, 0.08) 100%)",
+                      "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(59, 130, 246, 0.08) 50%, rgba(139, 92, 246, 0.08) 100%)",
+                    ],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0"
+                />
+
+                {/* Floating blobs */}
+                <motion.div
+                  animate={{
+                    x: [0, 30, 0],
+                    y: [0, -20, 0],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-blue-500/10 blur-3xl"
+                />
+                <motion.div
+                  animate={{
+                    x: [0, -25, 0],
+                    y: [0, 25, 0],
+                  }}
+                  transition={{
+                    duration: 7,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl"
+                />
+
+                {/* Content */}
+                <div className="relative flex flex-col items-center gap-5">
+                  {/* Animated icon */}
+                  <div className="relative">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-violet-500 to-purple-500 p-0.5"
+                    >
+                      <div className="w-full h-full rounded-full bg-white dark:bg-zinc-900 flex items-center justify-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.15, 1] }}
+                          transition={{
+                            duration: 1.8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <Sparkles className="w-6 h-6 text-violet-500" />
+                        </motion.div>
+                      </div>
+                    </motion.div>
+
+                    {/* Orbiting dots */}
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="absolute inset-0"
+                    >
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
+                    </motion.div>
+                    <motion.div
+                      animate={{ rotate: -360 }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="absolute inset-0"
+                    >
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50" />
+                    </motion.div>
+                  </div>
+
+                  {/* Step label with key-based animation */}
+                  <div className="flex flex-col items-center gap-1.5 min-h-[60px]">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={loadingStep || "default"}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        className="flex flex-col items-center gap-1.5"
+                      >
+                        <span className="text-base font-semibold bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 dark:from-blue-400 dark:via-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                          {loadingStep || "Getting started…"}
+                        </span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+                          {getSubtext(loadingStep)}
+                        </span>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Progress steps indicator */}
+                  <div className="flex items-center gap-2 pt-2">
+                    {[
+                      "Reading your resume...",
+                      "Analyzing job description...",
+                      "Scoring your match...",
+                    ].map((step) => {
+                      const stepIndex = [
+                        "Reading your resume...",
+                        "Analyzing job description...",
+                        "Scoring your match...",
+                      ].indexOf(step);
+                      const currentIndex = [
+                        "Reading your resume...",
+                        "Analyzing job description...",
+                        "Scoring your match...",
+                      ].indexOf(loadingStep);
+                      const isActive = stepIndex === currentIndex;
+                      const isCompleted = currentIndex > stepIndex;
+
+                      return (
+                        <motion.div
+                          key={step}
+                          animate={{
+                            width: isActive ? 32 : 8,
+                            backgroundColor: isCompleted
+                              ? "rgb(16 185 129)" // emerald-500
+                              : isActive
+                                ? "rgb(139 92 246)" // violet-500
+                                : "rgb(228 228 231)", // zinc-200
+                          }}
+                          transition={{
+                            duration: 0.4,
+                            ease: [0.22, 1, 0.36, 1],
+                          }}
+                          className="h-1.5 rounded-full dark:!bg-opacity-60"
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -389,4 +529,17 @@ export default function ResumeAnalyzerPage() {
       />
     </div>
   );
+}
+
+function getSubtext(step: string | undefined): string {
+  switch (step) {
+    case "Reading your resume...":
+      return "Extracting your skills and experience";
+    case "Analyzing job description...":
+      return "Understanding what the role requires";
+    case "Scoring your match...":
+      return "Comparing your skills against the role";
+    default:
+      return "Setting things up for you";
+  }
 }
