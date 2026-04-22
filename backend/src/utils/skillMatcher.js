@@ -30,12 +30,23 @@ const ALIASES = {
   typescript: ["ts"],
   "node.js": ["nodejs", "node js"],
   "next.js": ["nextjs", "next js"],
+  "nest.js": ["nestjs", "nest js"],
+  "vue.js": ["vuejs", "vue js", "vue"],
   "machine learning": ["ml"],
   "artificial intelligence": ["ai"],
   teamwork: ["team collaboration", "team work", "collaboration"],
   "team collaboration": ["teamwork", "collaboration"],
   communication: ["verbal communication", "engaging presentation"],
   "problem-solving": ["problem solving", "analytical thinking"],
+  "full stack development": ["full-stack development", "fullstack development"],
+  "restful apis": ["rest apis", "rest", "restful api"],
+  agile: ["agile development", "agile methodology", "agile methodologies"],
+  "backend development": [
+    "server-side programming",
+    "server side programming",
+    "server-side development",
+  ],
+  "server-side programming": ["backend development", "server side programming"],
 };
 
 /**

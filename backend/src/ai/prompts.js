@@ -58,18 +58,11 @@ Programming languages — any class-based/object-oriented language ALWAYS implie
   - C#, C++, Java, Kotlin, Swift, Scala, Ruby → ALWAYS also emit "Object-Oriented Programming"
   - Python or JavaScript used with classes → ALSO emit "Object-Oriented Programming"
 
-Soft skill demonstrations — if the resume describes these actions, emit the corresponding capability:
-  - Any mention of presentations, public speaking, or explaining ideas → emit "Communication"
-  - Any mention of working in teams, collaboration, or partnering → emit "Teamwork" AND "Collaboration"
-  - Any mention of leading, mentoring, guiding, or managing people → emit "Leadership"
-  - Any mention of writing documents, reports, or documentation → emit "Written Communication"
-  - Any mention of debugging, troubleshooting, or fixing issues → emit "Debugging", "Problem-Solving"
-
-  Framework-to-language implications:
-  - Angular → ALWAYS also emit "TypeScript"
+Framework-to-language implications:
+  - Angular → ALWAYS also emit "TypeScript", "JavaScript"
   - NestJS → ALWAYS also emit "TypeScript", "Node.js", "Backend Development"
   - Next.js, Remix → ALWAYS also emit "React", "JavaScript"
-  - Vue → ALWAYS also emit "JavaScript"
+  - Vue.js → ALWAYS also emit "JavaScript"
   - Django, Flask, FastAPI → ALWAYS also emit "Python", "Backend Development"
   - Rails → ALWAYS also emit "Ruby", "Backend Development"
   - Spring, Spring Boot → ALWAYS also emit "Java", "Backend Development"
@@ -78,6 +71,13 @@ Stack implications (when multiple of these appear together):
   - Frontend framework + Backend framework → ALWAYS also emit "Full Stack Development"
   - Any API framework (Express, NestJS, FastAPI, etc.) → ALWAYS also emit "RESTful APIs"
   - Any database (PostgreSQL, MySQL, MongoDB, etc.) → emit "Database Management"
+
+Soft skill demonstrations — if the resume describes these actions, emit the corresponding capability:
+  - Any mention of presentations, public speaking, or explaining ideas → emit "Communication"
+  - Any mention of working in teams, collaboration, or partnering → emit "Teamwork" AND "Collaboration"
+  - Any mention of leading, mentoring, guiding, or managing people → emit "Leadership"
+  - Any mention of writing documents, reports, or documentation → emit "Written Communication"
+  - Any mention of debugging, troubleshooting, or fixing issues → emit "Debugging", "Problem-Solving"
 
 Apply this reasoning to every item — don't copy the examples.
 
@@ -97,20 +97,58 @@ Use consistent, widely-recognized forms so skills can match across different phr
   • "F#" (not "F Sharp")
   • "JavaScript" (not "JS")
   • "TypeScript" (not "TS")
-  • "Node.js" (not "NodeJS")
+  • "Node.js" (not "NodeJS", "Node JS")
   • "Next.js" (not "NextJS")
   • "React" (not "ReactJS", "React.js")
-  • ".NET" (not "dotnet", "DotNet")
+  • "Vue.js" (not "VueJS", "Vue")
+  • ".NET" (not "dotnet", "DotNet", "DOTNET")
   • "Objective-C" (not "ObjC")
   • "Object-Oriented Programming" (when OOP is referenced, expand to this)
   • "Machine Learning" (not "ML" alone)
   • "Artificial Intelligence" (not "AI" alone)
   • "Problem-Solving" (with hyphen)
   • "UI/UX Design" (with slash)
+  • "Full Stack Development" (not "Full-Stack Development", "Fullstack Development")
+  • "RESTful APIs" (not "REST APIs", "REST", "Restful APIs")
+  • "CI/CD" (not "CI CD", "CICD", "Continuous Integration and Continuous Deployment")
   • "AWS" (keep abbreviation)
   • "GCP" (keep abbreviation)
   • "CRM" (keep abbreviation)
   • "SEO" (keep abbreviation)
+
+═══════════════════════════════════════
+RULE 4 — NAME-COLLISION DISAMBIGUATION
+═══════════════════════════════════════
+
+Some skill names sound alike but are distinct. Do not confuse these:
+
+Angular family:
+  - "AngularJS" and "Angular.js" USUALLY refer to modern Angular (2+). Emit as "Angular" UNLESS the text explicitly references legacy patterns ($scope, ng-controller, AngularJS 1.x).
+  - If legacy AngularJS 1.x is clearly referenced → emit "AngularJS" separately.
+  - "Angular" by itself → always means modern Angular 2+.
+
+React family:
+  - "React" → modern React web library
+  - "React Native" → separate skill for mobile, do NOT merge with React
+  - "React.js" and "ReactJS" → same as "React"
+
+Node family:
+  - "Node.js" and "Node" in a developer context → "Node.js"
+  - Don't confuse with "Node" as in networking/blockchain (rare in resumes)
+
+Java vs JavaScript:
+  - These are COMPLETELY UNRELATED despite the name. Never merge them.
+  - "Java" → the JVM language
+  - "JavaScript" → the browser/Node language
+
+.NET family:
+  - ".NET", ".NET Core", ".NET 5+", ".NET 6", ".NET 7", ".NET 8" → all emit as ".NET"
+  - "ASP.NET" is separate → keep distinct from ".NET"
+
+SQL dialects:
+  - "SQL" → generic SQL knowledge
+  - "MySQL", "PostgreSQL", "SQL Server", "Oracle", "SQLite" → specific databases, keep each distinct
+  - If resume mentions a specific database, also emit "SQL" as implied skill
 
 ═══════════════════════════════════════
 WHAT TO EXTRACT
@@ -138,10 +176,13 @@ WHAT TO EXCLUDE
 OUTPUT CONSTRAINTS
 ═══════════════════════════════════════
 
-- Return 10–20 unique skills. Quality over quantity.
-- Deduplicate strictly: no skill should appear twice, even in different casing. Drop near-duplicates (e.g., keep one of "Agile" or "Agile Methodology").
-- If the resume is sparse, return fewer skills with a lower confidence (0.3–0.5).
-- If the resume is detailed and rich, fill the range with genuinely present skills.
+- Return 12–30 unique skills. Err on the higher side for detailed resumes.
+- Skills listed in a dedicated "Skills", "Technical Skills", "Programming", or "Technologies" section MUST be captured — these are the candidate's explicit declarations and should be treated as highest priority.
+- Technologies listed in project descriptions ("Technologies: X, Y, Z") MUST be captured — these are concrete evidence of use.
+- Then apply the ladder rule to climb up from each specific skill.
+- Deduplicate strictly.
+- If the resume is sparse, return fewer skills with confidence 0.3–0.5.
+- If the resume lists many specific skills and technologies, fill the upper range with genuinely present skills.
 - Respond with a SINGLE JSON object. No markdown, no code fences, no commentary.
 
 ═══════════════════════════════════════
@@ -272,16 +313,20 @@ Use the same canonical forms as resumes use — matching depends on consistent n
   • "F#" (not "F Sharp")
   • "JavaScript" (not "JS")
   • "TypeScript" (not "TS")
-  • "Node.js" (not "NodeJS")
+  • "Node.js" (not "NodeJS", "Node JS")
   • "Next.js" (not "NextJS")
   • "React" (not "ReactJS", "React.js")
-  • ".NET" (not "dotnet", "DotNet")
+  • "Vue.js" (not "VueJS", "Vue")
+  • ".NET" (not "dotnet", "DotNet", "DOTNET")
   • "Objective-C" (not "ObjC")
   • "Object-Oriented Programming" (when OOP is referenced, expand to this)
   • "Machine Learning" (not "ML" alone)
   • "Artificial Intelligence" (not "AI" alone)
   • "Problem-Solving" (with hyphen)
   • "UI/UX Design" (with slash)
+  • "Full Stack Development" (not "Full-Stack Development", "Fullstack Development")
+  • "RESTful APIs" (not "REST APIs", "REST", "Restful APIs")
+  • "CI/CD" (not "CI CD", "CICD", "Continuous Integration and Continuous Deployment")
   • "AWS" (keep abbreviation)
   • "GCP" (keep abbreviation)
   • "CRM" (keep abbreviation)
@@ -303,6 +348,51 @@ Some phrasings look similar but mean different things. Do not confuse these:
   "Wide-ranging knowledge of X" → emit "X" as a skill if X is a concrete topic
 
 ═══════════════════════════════════════
+RULE 7 — NAME-COLLISION DISAMBIGUATION
+═══════════════════════════════════════
+
+Apply the same disambiguation rules as the resume prompt:
+
+Angular family:
+  - "AngularJS" and "Angular.js" in a JD USUALLY mean modern Angular (2+). Emit as "Angular" UNLESS the JD explicitly mentions legacy patterns ($scope, ng-controller, AngularJS 1.x, maintaining legacy code).
+  - If legacy AngularJS 1.x is clearly referenced → emit "AngularJS" separately.
+  - "Angular" by itself → always means modern Angular 2+.
+
+React family:
+  - "React" → modern React web library
+  - "React Native" → separate skill for mobile, do NOT merge with React
+  - "React.js" and "ReactJS" → same as "React"
+
+Java vs JavaScript:
+  - COMPLETELY UNRELATED despite the name. Never merge them.
+
+.NET family:
+  - ".NET", ".NET Core", ".NET 5+" → emit as ".NET"
+  - "ASP.NET" is separate → keep distinct
+
+SQL dialects:
+  - "MySQL", "PostgreSQL", "SQL Server", "Oracle", "SQLite" → keep distinct
+  - If JD mentions any specific database, also emit "SQL" and "Database Management"
+
+═══════════════════════════════════════
+RULE 8 — ALTERNATIVES vs ALL-OF (critical for shopping-list JDs)
+═══════════════════════════════════════
+
+When the JD lists multiple items that a candidate could EITHER/OR know, extract representative skills — not every option.
+
+ALTERNATIVE phrasings (extract 2-3 most common, not all):
+  - "experience with React, Angular, Vue, or Ember" → extract "React", "Angular" (NOT all four)
+  - "familiarity with MySQL, PostgreSQL, or MongoDB" → extract "MySQL", "PostgreSQL" + "Database Management"
+  - "version control (Git, GitHub, GitLab, Bitbucket)" → extract "Git", "Version Control" (the examples are just examples)
+  - "cloud platforms like AWS, Azure, or GCP" → extract "AWS", "Cloud Platforms"
+
+EXAMPLE phrasings (extract the category + 1-2 most common):
+  - "web servers like Apache, Nginx, or IIS" → extract "Web Servers", "Nginx"
+  - "CSS preprocessors (Sass, LESS)" → extract "Sass", "CSS Preprocessors"
+
+Rule of thumb: if the JD uses "like", "such as", "or", or lists 4+ similar items, treat as alternatives — not a checklist of requirements.
+
+═══════════════════════════════════════
 WHAT TO EXTRACT
 ═══════════════════════════════════════
 
@@ -311,6 +401,8 @@ WHAT TO EXTRACT
 - Required methodologies, certifications, domain knowledge
 - Required soft skills if explicitly stated as requirements
 - Capabilities implied by responsibilities (via Rule 4)
+- ALL items in explicit skills/programming/technologies sections (do not skip any)
+- ALL technologies listed in project descriptions
 
 ═══════════════════════════════════════
 WHAT TO EXCLUDE
@@ -322,15 +414,17 @@ WHAT TO EXCLUDE
 - Company boilerplate and marketing language
 - "Nice to haves" unless that's the only qualifications section
 - Generic filler ("hardworking", "motivated") unless explicitly required
+- Every item in a long alternatives list (see Rule 8)
 
 ═══════════════════════════════════════
 OUTPUT CONSTRAINTS
 ═══════════════════════════════════════
 
-- Return 8–18 unique skills.
-- Deduplicate strictly.
-- If the JD is vague ("hardworking team player with good attitude"), return only what's explicit and set confidence ≤ 0.3.
-- If the JD is specific and detailed with multiple sections, fill the upper range with genuinely required skills.
+- Return 8–15 unique, DISTINCT skills. Quality over quantity.
+- When the JD lists alternatives (e.g., "React, Angular, or Vue"), extract ONLY the most common or representative 2-3 — NOT every option.
+- When the JD lists examples of a category (e.g., "version control like Git, GitHub, GitLab"), extract the CATEGORY — not every example.
+- If the JD is vague ("hardworking team player"), return only what's explicit and set confidence ≤ 0.3.
+- If the JD is specific and detailed, fill the range with genuinely required skills.
 - Respond with a SINGLE JSON object. No markdown, no code fences, no commentary.
 
 ═══════════════════════════════════════
