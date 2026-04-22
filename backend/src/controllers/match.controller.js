@@ -1,6 +1,5 @@
 import Resume from "../models/Resume.model.js";
 import Analysis from "../models/Analysis.model.js";
-import { matchSkills } from "../utils/skillMatcher.js";
 import axios from "axios";
 import "dotenv/config";
 const extractIp = (req) => {
@@ -13,7 +12,7 @@ const extractIp = (req) => {
 };
 
 import { extractJobSkills } from "../ai/skillExtrator.js";
-
+import { matchSkills } from "../utils/skillMatcher.js";
 // const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://127.0.0.1:8000";
 
 export const matchResume = async (req, res) => {
@@ -27,7 +26,7 @@ export const matchResume = async (req, res) => {
     const ip = extractIp(req);
     const userId = req.user?.userId || null;
     const isGuest = !userId;
-
+    console.log(userId);
     // BLOCK guest after one use
     if (isGuest) {
       if (!guestId) {
@@ -51,10 +50,13 @@ export const matchResume = async (req, res) => {
       const guestRecord = await Analysis.findOne({
         $or: [{ guestId }, { ip }],
       });
-      guestRecord.userId = userId;
-      guestRecord.resumeId = resumeId;
 
-      await guestRecord.save();
+      if (guestRecord) {
+        guestRecord.userId = userId;
+        guestRecord.resumeId = resumeId;
+        await guestRecord.save();
+      }
+      // If no guest record exists, that's fine — nothing to migrate
     }
 
     //  GET RESUME SKILLS
@@ -74,29 +76,14 @@ export const matchResume = async (req, res) => {
     const { skills: jobSkills, confidence } =
       await extractJobSkills(jobDescription);
 
-    //const jobSkills = aiResponse.data.skills || [];
-
-    //  NORMALIZE
-    const normalize = (arr) =>
-      arr.map((s) =>
-        s
-          .toLowerCase()
-          .trim()
-          .replace(/[^\w\s]/g, "")
-          .replace(/\s+/g, " "),
-      );
-
-    const normalizedResume = normalize(resume_Skills);
-    const normalizedJob = normalize(jobSkills);
-
     //  MATCH
     const { matchedSkills, missingSkills, weakMatches } = matchSkills(
-      normalizedResume,
-      normalizedJob,
+      resume_Skills,
+      jobSkills,
     );
 
     //  SCORE
-    const total = normalizedJob.length;
+    const total = jobSkills.length;
 
     const score =
       total === 0

@@ -6,7 +6,7 @@ const client = new Groq({
 });
 
 export const MODEL_CONFIG = {
-  model: "llama-3.1-8b-instant",
+  model: "llama-3.3-70b-versatile",
   temperature: 0,
   top_p: 1.0,
 };
