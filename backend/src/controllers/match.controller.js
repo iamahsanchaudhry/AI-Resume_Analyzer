@@ -63,7 +63,7 @@ export const matchResume = async (req, res) => {
     let resume_Skills = resumeSkills || [];
 
     if (userId && resumeId) {
-      const resume = await Resume.findById("69e7d34811186700f077dbc9");
+      const resume = await Resume.findById(resumeId);
 
       if (!resume) {
         return res.status(404).json({ message: "Resume not found" });
