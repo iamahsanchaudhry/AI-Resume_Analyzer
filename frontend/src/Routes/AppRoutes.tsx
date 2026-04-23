@@ -1,5 +1,6 @@
 import { Footer } from "@/components/shared/Footer";
 import { Navbar } from "@/components/shared/Navbar";
+import GuestRoute from "@/components/user/guards/GuestRoute";
 import LandingPage from "@/pages/LandingPage";
 import ResumeAnalyzerPage from "@/pages/ResumeAnalyzerPage";
 import LoginPage from "@/pages/UserPages/LoginPage";
@@ -14,10 +15,23 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/analyze" element={<ResumeAnalyzerPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <GuestRoute>
+              <SignupPage />
+            </GuestRoute>
+          }
+        />
       </Routes>
-
       <Footer />
     </>
   );
