@@ -1,34 +1,67 @@
-import client, { MODEL_CONFIG } from "./groqClient.js";
+import client, { PRIMARY_MODEL, FALLBACK_MODEL } from "./groqClient.js";
 import { RESUME_PROMPT, JOB_PROMPT, MATCH_PROMPT } from "./prompts.js";
 import { cleanText, safeJson } from "./utils.js";
 
 /**
- * Call Groq with a system prompt, retrying once on rate-limit (429).
- * Returns the raw string content from the model.
+ * Call Groq with a system prompt and user text.
+ * Tries the primary model (70B) first. If it fails with a rate limit,
+ * falls back to the secondary model (8B) automatically.
  */
-async function callGroq(systemPrompt, userContent, retries = 2) {
-  try {
+async function callGroq(systemPrompt, userContent, retries = 1) {
+  const attemptCall = async (modelConfig) => {
     const completion = await client.chat.completions.create(
       {
-        ...MODEL_CONFIG,
+        ...modelConfig,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
         ],
       },
       {
-        timeout: 20000, // 20s per Groq call
+        timeout: 20000,
       },
     );
     return completion.choices[0]?.message?.content || "";
-  } catch (err) {
-    // ...
+  };
+
+  try {
+    console.log("Using model:" + PRIMARY_MODEL.model);
+    // Try primary (70B) first
+    return await attemptCall(PRIMARY_MODEL);
+  } catch (primaryErr) {
+    const isRateLimit = primaryErr.status === 429;
+    const isTimeout = primaryErr.name === "APITimeoutError";
+
+    // If the primary hit rate limit or timed out, try the fallback (8B) immediately
+    if (isRateLimit || isTimeout) {
+      console.warn(
+        `Primary model (${PRIMARY_MODEL.model}) hit ${isRateLimit ? "rate limit" : "timeout"}, falling back to ${FALLBACK_MODEL.model}`,
+      );
+
+      try {
+        console.log("Using model:" + FALLBACK_MODEL.model);
+        return await attemptCall(FALLBACK_MODEL);
+      } catch (fallbackErr) {
+        // Fallback also failed — retry once after a brief wait
+        if (
+          retries > 0 &&
+          (fallbackErr.status === 429 || fallbackErr.name === "APITimeoutError")
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          return callGroq(systemPrompt, userContent, retries - 1);
+        }
+        throw fallbackErr;
+      }
+    }
+
+    // Not a rate-limit error — bubble up
+    throw primaryErr;
   }
 }
 
 /**
  * Extract skills from resume or job text.
- * Returns: { skills: string[], confidence: number }
+ * Shape: { skills: string[], confidence: number }
  */
 async function extractSkills(text, systemPrompt) {
   const cleaned = cleanText(text);
@@ -39,12 +72,7 @@ async function extractSkills(text, systemPrompt) {
 export const extractResumeSkills = (text) => extractSkills(text, RESUME_PROMPT);
 export const extractJobSkills = (text) => extractSkills(text, JOB_PROMPT);
 
-/**
- * Match resume skills against job skills using the LLM.
- * Returns: { matchedSkills, weakMatches, missingSkills, reasoning }
- *
- * Throws on invalid input or LLM failure — caller should handle with fallback.
- */
+// matchSkillsAI stays the same — it internally uses callGroq so it gets the fallback behavior automatically
 export async function matchSkillsAI(resumeSkills, jobSkills) {
   if (!Array.isArray(jobSkills) || jobSkills.length === 0) {
     return {
@@ -75,7 +103,7 @@ ${jobSkills.join(", ")}`;
   const content = await callGroq(MATCH_PROMPT, userContent);
   const parsed = safeJson(content);
 
-  // Collect raw classifications
+  // Collect and filter classifications (keep only skills that exist in the job list)
   const rawMatched = Array.isArray(parsed.matchedSkills)
     ? parsed.matchedSkills.filter((s) => typeof s === "string")
     : [];
@@ -86,14 +114,11 @@ ${jobSkills.join(", ")}`;
     ? parsed.missingSkills.filter((s) => typeof s === "string")
     : [];
 
-  // Build a normalized lookup of job skills for filtering
-  const jobSkillSet = new Map(); // normalizedKey -> originalJobSkill
+  const jobSkillSet = new Map();
   for (const js of jobSkills) {
     jobSkillSet.set(String(js).toLowerCase().trim(), js);
   }
 
-  // Filter: only keep items that actually appear in the job skills list.
-  // Use each skill at most once — first match wins by priority: matched > weak > missing.
   const claimed = new Set();
   const matchedSkills = [];
   const weakMatches = [];
@@ -103,7 +128,7 @@ ${jobSkills.join(", ")}`;
     const key = String(llmLabel).toLowerCase().trim();
     if (claimed.has(key)) return null;
     const original = jobSkillSet.get(key);
-    if (!original) return null; // LLM invented this — ignore
+    if (!original) return null;
     claimed.add(key);
     return original;
   };
@@ -121,7 +146,7 @@ ${jobSkills.join(", ")}`;
     if (original) missingSkills.push(original);
   }
 
-  // Any job skill the LLM failed to classify → mark as missing
+  // Any unclassified job skill → mark missing
   for (const [key, original] of jobSkillSet) {
     if (!claimed.has(key)) {
       missingSkills.push(original);
@@ -133,10 +158,5 @@ ${jobSkills.join(", ")}`;
       ? parsed.reasoning
       : {};
 
-  return {
-    matchedSkills,
-    weakMatches,
-    missingSkills,
-    reasoning,
-  };
+  return { matchedSkills, weakMatches, missingSkills, reasoning };
 }

@@ -92,6 +92,8 @@ export const matchResume = async (req, res) => {
     try {
       matchResult = await matchSkillsAI(resume_Skills, jobSkills);
       console.log(`[TIMING] AI match: ${Date.now() - t2}ms`);
+      // VERIFIER — catch obvious misses
+      //matchResult = verifyAndCorrect(matchResult, resume_Skills, jobSkills);
     } catch (err) {
       console.warn("AI matcher failed:", err.message);
       matchResult = matchSkillsDeterministic(resume_Skills, jobSkills);

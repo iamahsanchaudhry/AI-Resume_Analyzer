@@ -151,3 +151,42 @@ export function matchSkills(resumeSkills, jobSkills) {
     missingSkills,
   };
 }
+
+export function verifyAndCorrect(aiResult, resumeSkills, jobSkills) {
+  // Get deterministic baseline (exact + alias matches)
+  const deterministic = matchSkills(resumeSkills, jobSkills);
+
+  // Build lookup of what AI classified
+  const aiMatched = new Set(aiResult.matchedSkills);
+  const aiWeak = new Set(aiResult.weakMatches);
+  const aiMissing = new Set(aiResult.missingSkills);
+
+  const corrected = {
+    matchedSkills: [...aiResult.matchedSkills],
+    weakMatches: [...aiResult.weakMatches],
+    missingSkills: [...aiResult.missingSkills],
+    reasoning: { ...aiResult.reasoning },
+  };
+
+  // For each skill the deterministic matcher found as exact match:
+  // if AI put it in weak or missing, promote it to matched
+  for (const skill of deterministic.matchedSkills) {
+    if (aiWeak.has(skill)) {
+      // Remove from weak, add to matched
+      corrected.weakMatches = corrected.weakMatches.filter((s) => s !== skill);
+      corrected.matchedSkills.push(skill);
+      corrected.reasoning[skill] =
+        (corrected.reasoning[skill] || "") +
+        " (verified: exact match in resume)";
+    } else if (aiMissing.has(skill)) {
+      // Remove from missing, add to matched
+      corrected.missingSkills = corrected.missingSkills.filter(
+        (s) => s !== skill,
+      );
+      corrected.matchedSkills.push(skill);
+      corrected.reasoning[skill] = "Verified: exact match found in resume";
+    }
+  }
+
+  return corrected;
+}
